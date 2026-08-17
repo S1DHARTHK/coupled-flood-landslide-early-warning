@@ -1,0 +1,138 @@
+{
+  "_warning": "SYNTHETIC / DUMMY DATA -- NOT FOR RESEARCH RESULTS. These attributions describe a model trained on simulated data.",
+  "_scope_note": "Explanation layer only. The model was not retrained, modified, or re-thresholded, and SHAP is not used by TCDL or by any prediction path.",
+  "model": "flood",
+  "model_label": "Flood XGBoost V1.0",
+  "model_version": "1.0",
+  "target": "flood",
+  "n_features": 12,
+  "feature_order": [
+    "rainfall_1d_mm",
+    "rainfall_3d_mm",
+    "rainfall_7d_mm",
+    "rainfall_14d_mm",
+    "rainfall_30d_mm",
+    "soil_moisture",
+    "temperature_c",
+    "humidity_percent",
+    "elevation_m",
+    "river_level_m",
+    "distance_to_river_km",
+    "drainage_density"
+  ],
+  "categorical_features": [],
+  "category_schema": {},
+  "explainer": "TreeSHAP via XGBoost pred_contribs (exact)",
+  "shap_space": "log-odds (margin)",
+  "base_value_mean": 0.00919,
+  "dataset": {
+    "split": "test (unseen)",
+    "date_range": [
+      "2020-07-21",
+      "2020-12-31"
+    ],
+    "n_rows": 1476,
+    "source": "synthetic_master_dataset.csv"
+  },
+  "prediction_integrity": {
+    "n_rows": 1476,
+    "max_abs_probability_difference": 0.0,
+    "identical_within_tolerance": true,
+    "max_abs_difference_after_reload_from_disk": 0.0,
+    "reload_identical": true,
+    "shap_additivity_max_drift": 4.76837158203125e-07,
+    "explainer_type": "TreeExplainer",
+    "model_retrained": false
+  },
+  "global_importance": [
+    {
+      "feature": "river_level_m",
+      "mean_abs_shap": 0.517177,
+      "share_of_total": 0.36983,
+      "mean_signed_shap": -0.304983,
+      "is_categorical": false
+    },
+    {
+      "feature": "soil_moisture",
+      "mean_abs_shap": 0.412133,
+      "share_of_total": 0.294713,
+      "mean_signed_shap": -0.255728,
+      "is_categorical": false
+    },
+    {
+      "feature": "humidity_percent",
+      "mean_abs_shap": 0.105363,
+      "share_of_total": 0.075344,
+      "mean_signed_shap": -0.075621,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_7d_mm",
+      "mean_abs_shap": 0.097587,
+      "share_of_total": 0.069784,
+      "mean_signed_shap": -0.01772,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_3d_mm",
+      "mean_abs_shap": 0.062668,
+      "share_of_total": 0.044813,
+      "mean_signed_shap": -0.056682,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_1d_mm",
+      "mean_abs_shap": 0.051144,
+      "share_of_total": 0.036573,
+      "mean_signed_shap": -0.017152,
+      "is_categorical": false
+    },
+    {
+      "feature": "elevation_m",
+      "mean_abs_shap": 0.048195,
+      "share_of_total": 0.034464,
+      "mean_signed_shap": -0.025705,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_30d_mm",
+      "mean_abs_shap": 0.035545,
+      "share_of_total": 0.025418,
+      "mean_signed_shap": -0.009233,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_14d_mm",
+      "mean_abs_shap": 0.029823,
+      "share_of_total": 0.021326,
+      "mean_signed_shap": 0.005008,
+      "is_categorical": false
+    },
+    {
+      "feature": "temperature_c",
+      "mean_abs_shap": 0.021608,
+      "share_of_total": 0.015452,
+      "mean_signed_shap": -0.014009,
+      "is_categorical": false
+    },
+    {
+      "feature": "distance_to_river_km",
+      "mean_abs_shap": 0.013901,
+      "share_of_total": 0.009941,
+      "mean_signed_shap": -0.010423,
+      "is_categorical": false
+    },
+    {
+      "feature": "drainage_density",
+      "mean_abs_shap": 0.003276,
+      "share_of_total": 0.002342,
+      "mean_signed_shap": -0.001081,
+      "is_categorical": false
+    }
+  ],
+  "outputs": {
+    "bar_plot": "flood_shap_bar.png",
+    "summary_plot": "flood_shap_summary.png"
+  },
+  "interpretation_note": "Mean |SHAP| ranks how much each feature moved this model's output on average. It describes model behaviour, not physical causation."
+}

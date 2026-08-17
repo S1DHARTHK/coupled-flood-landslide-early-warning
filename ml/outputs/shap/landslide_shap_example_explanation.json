@@ -1,0 +1,92 @@
+{
+  "_warning": "SYNTHETIC / DUMMY DATA -- NOT FOR RESEARCH RESULTS. Explanations describe the model's behaviour on simulated data.",
+  "model": "landslide",
+  "model_label": "Landslide XGBoost V1.0",
+  "model_version": "1.0",
+  "target": "landslide",
+  "probability": 0.937799,
+  "prediction": 1,
+  "decision_threshold": 0.5,
+  "raw_margin": 2.713159,
+  "base_value": 0.022243,
+  "base_value_probability": 0.50556,
+  "sum_shap_values": 2.690916,
+  "shap_space": "log-odds (margin); probability = sigmoid(base_value + sum of SHAP values)",
+  "additivity_check": {
+    "reconstructed_margin": 2.713159,
+    "model_margin": 2.713159,
+    "max_abs_difference": 2.44e-07,
+    "passed": true
+  },
+  "n_features": 14,
+  "contributions": [
+    {
+      "feature": "rainfall_3d_mm",
+      "value": 279.8,
+      "shap_value": 0.752315,
+      "abs_shap_value": 0.752315,
+      "direction": "increases the model's predicted risk",
+      "effect": "increases risk",
+      "magnitude": 0.752315,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_7d_mm",
+      "value": 384.6,
+      "shap_value": 0.608542,
+      "abs_shap_value": 0.608542,
+      "direction": "increases the model's predicted risk",
+      "effect": "increases risk",
+      "magnitude": 0.608542,
+      "is_categorical": false
+    },
+    {
+      "feature": "humidity_percent",
+      "value": 95.6,
+      "shap_value": 0.336648,
+      "abs_shap_value": 0.336648,
+      "direction": "increases the model's predicted risk",
+      "effect": "increases risk",
+      "magnitude": 0.336648,
+      "is_categorical": false
+    },
+    {
+      "feature": "elevation_m",
+      "value": 812.0,
+      "shap_value": 0.299029,
+      "abs_shap_value": 0.299029,
+      "direction": "increases the model's predicted risk",
+      "effect": "increases risk",
+      "magnitude": 0.299029,
+      "is_categorical": false
+    },
+    {
+      "feature": "soil_moisture",
+      "value": 0.4967,
+      "shap_value": 0.293156,
+      "abs_shap_value": 0.293156,
+      "direction": "increases the model's predicted risk",
+      "effect": "increases risk",
+      "magnitude": 0.293156,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_30d_mm",
+      "value": 853.1,
+      "shap_value": 0.108842,
+      "abs_shap_value": 0.108842,
+      "direction": "increases the model's predicted risk",
+      "effect": "increases risk",
+      "magnitude": 0.108842,
+      "is_categorical": false
+    }
+  ],
+  "interpretation_note": "SHAP values quantify how much each feature contributed to THIS model's output relative to its base value. They describe model behaviour and must not be read as evidence of physical causation.",
+  "sample": {
+    "test_row_index": 96,
+    "date": "2020-07-31",
+    "latitude": 11.394,
+    "longitude": 76.688,
+    "actual_label": 1
+  }
+}

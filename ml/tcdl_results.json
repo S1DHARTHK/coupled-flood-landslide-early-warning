@@ -1,0 +1,441 @@
+{
+  "_warning": "SYNTHETIC / DUMMY DATA -- NOT FOR RESEARCH RESULTS. These numbers describe a simulated dataset.",
+  "_scope_note": "TCDL V1.0 is a PROPOSED rule-based coupling mechanism. This file measures whether it helps; it does not claim that it maximises lead time.",
+  "_structural_dominance_note": "Rules R1/R2 replicate the two single-model baselines exactly, so the coupled warning set is a superset of their union and cannot warn later or detect fewer events. That is a construction artefact. The 'tcdl_coupling_rules_only' system isolates the contribution of rules R3-R7, and false-alarm rates are reported alongside every lead time.",
+  "version": "1.0",
+  "layer_type": "rule-based, no training, no fitted parameters",
+  "inputs": {
+    "master_dataset": "synthetic_master_dataset.csv",
+    "flood_model": "flood_xgboost_model.json",
+    "landslide_model": "landslide_xgboost_model.json",
+    "models_modified": false
+  },
+  "evaluation_period": {
+    "split": "test",
+    "date_range": [
+      "2020-07-21",
+      "2020-12-31"
+    ],
+    "n_rows": 1476,
+    "n_locations": 9,
+    "note": "Earlier rows are scored only to warm up rolling windows; they are never evaluated."
+  },
+  "parameters": {
+    "baseline_threshold": 0.5,
+    "smooth_window_days": 3,
+    "rate_window_days": 3,
+    "sustain_days": 2,
+    "max_lookback_days": 14,
+    "threshold_policy": "quantiles of each signal over the TRAINING period only; absolute values resolved at runtime",
+    "threshold_quantiles": {
+      "alert_level": {
+        "signal": "coupled_prob_ma",
+        "quantile": 0.9
+      },
+      "watch_level": {
+        "signal": "coupled_prob_ma",
+        "quantile": 0.75
+      },
+      "rising_flood_level": {
+        "signal": "flood_prob_ma",
+        "quantile": 0.75
+      },
+      "rising_landslide_level": {
+        "signal": "landslide_prob_ma",
+        "quantile": 0.75
+      },
+      "joint_flood_level": {
+        "signal": "flood_prob_ma",
+        "quantile": 0.8
+      },
+      "joint_landslide_level": {
+        "signal": "landslide_prob_ma",
+        "quantile": 0.8
+      },
+      "flood_rate": {
+        "signal": "flood_prob_rate",
+        "quantile": 0.9
+      },
+      "landslide_rate": {
+        "signal": "landslide_prob_rate",
+        "quantile": 0.9
+      },
+      "rain_rate": {
+        "signal": "rainfall_rate",
+        "quantile": 0.95
+      },
+      "soil_rate": {
+        "signal": "soil_moisture_rate",
+        "quantile": 0.9
+      }
+    },
+    "resolved_thresholds": {
+      "alert_level": 0.834013,
+      "watch_level": 0.595292,
+      "rising_flood_level": 0.337265,
+      "rising_landslide_level": 0.325274,
+      "joint_flood_level": 0.388901,
+      "joint_landslide_level": 0.381962,
+      "flood_rate": 0.078838,
+      "landslide_rate": 0.0786,
+      "rain_rate": 16.215,
+      "soil_rate": 0.077487
+    }
+  },
+  "rules": {
+    "R1_FLOOD_LEVEL": "flood_probability >= 0.5 (replicates the flood-only baseline)",
+    "R2_LANDSLIDE_LEVEL": "landslide_probability >= 0.5 (replicates the landslide-only baseline)",
+    "R3_SUSTAINED_JOINT": "smoothed coupled probability >= 0.8340 (train p90) for 2 consecutive days",
+    "R4_RISING_FLOOD": "smoothed flood probability >= 0.3373 (train p75) AND rising by >= 0.0788 (train p90) over 3 days",
+    "R5_RISING_LANDSLIDE": "smoothed landslide probability >= 0.3253 (train p75) AND rising by >= 0.0786 (train p90) over 3 days",
+    "R6_ENV_PRECURSOR": "smoothed coupled probability >= 0.5953 (train p75) AND rainfall rising by >= 16.21 mm/day (train p95) AND soil moisture rising by >= 0.0775 (train p90), rates over 3 days",
+    "R7_JOINT_MODERATE": "smoothed flood probability >= 0.3889 AND smoothed landslide probability >= 0.3820 simultaneously (both train p80) -- joint moderate risk where neither hazard alone reaches 0.5"
+  },
+  "rule_classification": {
+    "baseline_replicating": [
+      "R1_FLOOD_LEVEL",
+      "R2_LANDSLIDE_LEVEL"
+    ],
+    "coupling": [
+      "R3_SUSTAINED_JOINT",
+      "R4_RISING_FLOOD",
+      "R5_RISING_LANDSLIDE",
+      "R6_ENV_PRECURSOR",
+      "R7_JOINT_MODERATE"
+    ]
+  },
+  "coupled_probability_definition": "noisy-OR: 1 - (1 - p_flood)(1 - p_landslide). Assumes conditional independence, which is only an approximation since both hazards share rainfall drivers. Used for ranking, not as a calibrated joint probability.",
+  "rule_firing_counts": {
+    "R1_FLOOD_LEVEL": 235,
+    "R2_LANDSLIDE_LEVEL": 233,
+    "R3_SUSTAINED_JOINT": 126,
+    "R4_RISING_FLOOD": 125,
+    "R5_RISING_LANDSLIDE": 140,
+    "R6_ENV_PRECURSOR": 53,
+    "R7_JOINT_MODERATE": 116
+  },
+  "top_rule_combinations": {
+    "R1_FLOOD_LEVEL": 90,
+    "R2_LANDSLIDE_LEVEL": 51,
+    "R1_FLOOD_LEVEL|R4_RISING_FLOOD": 43,
+    "R2_LANDSLIDE_LEVEL|R5_RISING_LANDSLIDE": 37,
+    "R2_LANDSLIDE_LEVEL|R3_SUSTAINED_JOINT": 26,
+    "R5_RISING_LANDSLIDE": 25,
+    "R1_FLOOD_LEVEL|R2_LANDSLIDE_LEVEL|R3_SUSTAINED_JOINT|R7_JOINT_MODERATE": 21,
+    "R4_RISING_FLOOD": 14,
+    "R1_FLOOD_LEVEL|R4_RISING_FLOOD|R6_ENV_PRECURSOR": 14,
+    "R2_LANDSLIDE_LEVEL|R7_JOINT_MODERATE": 14,
+    "R2_LANDSLIDE_LEVEL|R5_RISING_LANDSLIDE|R6_ENV_PRECURSOR": 11,
+    "R1_FLOOD_LEVEL|R3_SUSTAINED_JOINT": 10,
+    "R7_JOINT_MODERATE": 10,
+    "R2_LANDSLIDE_LEVEL|R3_SUSTAINED_JOINT|R7_JOINT_MODERATE": 10,
+    "R2_LANDSLIDE_LEVEL|R3_SUSTAINED_JOINT|R5_RISING_LANDSLIDE": 9
+  },
+  "warning_counts": {
+    "tcdl_coupled": 471,
+    "tcdl_coupling_rules_only": 329,
+    "flood_only_baseline": 235,
+    "landslide_only_baseline": 233,
+    "evaluation_rows": 1476
+  },
+  "event_source": {
+    "source": "derived_from_label_columns",
+    "method": "first day of each run of consecutive hazard days per location (onset = hazard==1 and previous day != 1)",
+    "resolution": "daily (00:00); the master dataset has no time-of-day component",
+    "n_events": 223,
+    "external_hook": "place a CSV at ml/event_timestamps.csv with columns date,latitude,longitude,hazard_type,event_timestamp to use real hour-resolution timestamps instead"
+  },
+  "lead_time_definition": {
+    "formula": "lead_time = event_onset_time - warning_time",
+    "unit": "hours",
+    "earliest_variant": "earliest warning within the lookback window",
+    "contiguous_variant": "length of the unbroken warning run ending at onset",
+    "zero_lead_meaning": "a warning on the onset day itself is a nowcast, not a forecast: it uses that day's own rainfall"
+  },
+  "lead_time_note": "MISSING DATA: the project has no real event onset timestamps and the master dataset has no time-of-day component. Lead time is quantised to 24 h and is an UPPER BOUND -- the true value lies within 24 h below each reported figure. Supply ml/event_timestamps.csv to obtain hour-resolution results.",
+  "results": {
+    "any_hazard": {
+      "flood_only": {
+        "n_events": 103,
+        "n_detected": 50,
+        "detection_rate": 0.4854,
+        "mean_lead_time_hours_earliest": 175.68,
+        "median_lead_time_hours_earliest": 144.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 60.96,
+        "median_lead_time_hours_contiguous": 12.0,
+        "n_zero_lead_nowcast": 7,
+        "n_warning_days": 235,
+        "time_in_warning_rate": 0.1592,
+        "n_false_alarm_days": 146,
+        "false_alarm_day_rate": 0.6213,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.2979,
+        "lookback_window_days": 14
+      },
+      "landslide_only": {
+        "n_events": 103,
+        "n_detected": 51,
+        "detection_rate": 0.4951,
+        "mean_lead_time_hours_earliest": 215.06,
+        "median_lead_time_hours_earliest": 288.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 56.0,
+        "median_lead_time_hours_contiguous": 0.0,
+        "n_zero_lead_nowcast": 5,
+        "n_warning_days": 233,
+        "time_in_warning_rate": 0.1579,
+        "n_false_alarm_days": 152,
+        "false_alarm_day_rate": 0.6524,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.3348,
+        "lookback_window_days": 14
+      },
+      "tcdl_coupled": {
+        "n_events": 103,
+        "n_detected": 85,
+        "detection_rate": 0.8252,
+        "mean_lead_time_hours_earliest": 214.02,
+        "median_lead_time_hours_earliest": 240.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 72.56,
+        "median_lead_time_hours_contiguous": 24.0,
+        "n_zero_lead_nowcast": 4,
+        "n_warning_days": 471,
+        "time_in_warning_rate": 0.3191,
+        "n_false_alarm_days": 297,
+        "false_alarm_day_rate": 0.6306,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.3142,
+        "lookback_window_days": 14
+      },
+      "tcdl_coupling_rules_only": {
+        "n_events": 103,
+        "n_detected": 79,
+        "detection_rate": 0.767,
+        "mean_lead_time_hours_earliest": 194.13,
+        "median_lead_time_hours_earliest": 192.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 34.33,
+        "median_lead_time_hours_contiguous": 0.0,
+        "n_zero_lead_nowcast": 8,
+        "n_warning_days": 329,
+        "time_in_warning_rate": 0.2229,
+        "n_false_alarm_days": 212,
+        "false_alarm_day_rate": 0.6444,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.307,
+        "lookback_window_days": 14
+      },
+      "always_warn_control": {
+        "n_events": 103,
+        "n_detected": 103,
+        "detection_rate": 1.0,
+        "mean_lead_time_hours_earliest": 308.97,
+        "median_lead_time_hours_earliest": 336.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 1817.94,
+        "median_lead_time_hours_contiguous": 1824.0,
+        "n_zero_lead_nowcast": 0,
+        "n_warning_days": 1476,
+        "time_in_warning_rate": 1.0,
+        "n_false_alarm_days": 1099,
+        "false_alarm_day_rate": 0.7446,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.3652,
+        "lookback_window_days": 14
+      }
+    },
+    "flood": {
+      "flood_only": {
+        "n_events": 68,
+        "n_detected": 47,
+        "detection_rate": 0.6912,
+        "mean_lead_time_hours_earliest": 171.57,
+        "median_lead_time_hours_earliest": 144.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 62.3,
+        "median_lead_time_hours_contiguous": 24.0,
+        "n_zero_lead_nowcast": 8,
+        "n_warning_days": 235,
+        "time_in_warning_rate": 0.1592,
+        "n_false_alarm_days": 148,
+        "false_alarm_day_rate": 0.6298,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.3362,
+        "lookback_window_days": 14
+      },
+      "landslide_only": {
+        "n_events": 68,
+        "n_detected": 26,
+        "detection_rate": 0.3824,
+        "mean_lead_time_hours_earliest": 214.15,
+        "median_lead_time_hours_earliest": 252.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 108.92,
+        "median_lead_time_hours_contiguous": 24.0,
+        "n_zero_lead_nowcast": 2,
+        "n_warning_days": 233,
+        "time_in_warning_rate": 0.1579,
+        "n_false_alarm_days": 183,
+        "false_alarm_day_rate": 0.7854,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.6052,
+        "lookback_window_days": 14
+      },
+      "tcdl_coupled": {
+        "n_events": 68,
+        "n_detected": 56,
+        "detection_rate": 0.8235,
+        "mean_lead_time_hours_earliest": 202.71,
+        "median_lead_time_hours_earliest": 240.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 105.0,
+        "median_lead_time_hours_contiguous": 48.0,
+        "n_zero_lead_nowcast": 3,
+        "n_warning_days": 471,
+        "time_in_warning_rate": 0.3191,
+        "n_false_alarm_days": 342,
+        "false_alarm_day_rate": 0.7261,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.4989,
+        "lookback_window_days": 14
+      },
+      "tcdl_coupling_rules_only": {
+        "n_events": 68,
+        "n_detected": 51,
+        "detection_rate": 0.75,
+        "mean_lead_time_hours_earliest": 172.71,
+        "median_lead_time_hours_earliest": 144.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 64.94,
+        "median_lead_time_hours_contiguous": 24.0,
+        "n_zero_lead_nowcast": 7,
+        "n_warning_days": 329,
+        "time_in_warning_rate": 0.2229,
+        "n_false_alarm_days": 235,
+        "false_alarm_day_rate": 0.7143,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.4894,
+        "lookback_window_days": 14
+      },
+      "always_warn_control": {
+        "n_events": 68,
+        "n_detected": 68,
+        "detection_rate": 1.0,
+        "mean_lead_time_hours_earliest": 304.59,
+        "median_lead_time_hours_earliest": 336.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 1643.29,
+        "median_lead_time_hours_contiguous": 1320.0,
+        "n_zero_lead_nowcast": 1,
+        "n_warning_days": 1476,
+        "time_in_warning_rate": 1.0,
+        "n_false_alarm_days": 1234,
+        "false_alarm_day_rate": 0.836,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.5752,
+        "lookback_window_days": 14
+      }
+    },
+    "landslide": {
+      "flood_only": {
+        "n_events": 52,
+        "n_detected": 14,
+        "detection_rate": 0.2692,
+        "mean_lead_time_hours_earliest": 133.71,
+        "median_lead_time_hours_earliest": 96.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 44.57,
+        "median_lead_time_hours_contiguous": 0.0,
+        "n_zero_lead_nowcast": 2,
+        "n_warning_days": 235,
+        "time_in_warning_rate": 0.1592,
+        "n_false_alarm_days": 208,
+        "false_alarm_day_rate": 0.8851,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.7915,
+        "lookback_window_days": 14
+      },
+      "landslide_only": {
+        "n_events": 52,
+        "n_detected": 41,
+        "detection_rate": 0.7885,
+        "mean_lead_time_hours_earliest": 204.29,
+        "median_lead_time_hours_earliest": 216.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 64.39,
+        "median_lead_time_hours_contiguous": 0.0,
+        "n_zero_lead_nowcast": 4,
+        "n_warning_days": 233,
+        "time_in_warning_rate": 0.1579,
+        "n_false_alarm_days": 157,
+        "false_alarm_day_rate": 0.6738,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.4077,
+        "lookback_window_days": 14
+      },
+      "tcdl_coupled": {
+        "n_events": 52,
+        "n_detected": 46,
+        "detection_rate": 0.8846,
+        "mean_lead_time_hours_earliest": 225.39,
+        "median_lead_time_hours_earliest": 252.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 70.96,
+        "median_lead_time_hours_contiguous": 24.0,
+        "n_zero_lead_nowcast": 2,
+        "n_warning_days": 471,
+        "time_in_warning_rate": 0.3191,
+        "n_false_alarm_days": 371,
+        "false_alarm_day_rate": 0.7877,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.6008,
+        "lookback_window_days": 14
+      },
+      "tcdl_coupling_rules_only": {
+        "n_events": 52,
+        "n_detected": 45,
+        "detection_rate": 0.8654,
+        "mean_lead_time_hours_earliest": 209.07,
+        "median_lead_time_hours_earliest": 216.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 44.8,
+        "median_lead_time_hours_contiguous": 0.0,
+        "n_zero_lead_nowcast": 2,
+        "n_warning_days": 329,
+        "time_in_warning_rate": 0.2229,
+        "n_false_alarm_days": 253,
+        "false_alarm_day_rate": 0.769,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.5471,
+        "lookback_window_days": 14
+      },
+      "always_warn_control": {
+        "n_events": 52,
+        "n_detected": 52,
+        "detection_rate": 1.0,
+        "mean_lead_time_hours_earliest": 297.69,
+        "median_lead_time_hours_earliest": 336.0,
+        "max_lead_time_hours_earliest": 336.0,
+        "mean_lead_time_hours_contiguous": 1714.62,
+        "median_lead_time_hours_contiguous": 1884.0,
+        "n_zero_lead_nowcast": 0,
+        "n_warning_days": 1476,
+        "time_in_warning_rate": 1.0,
+        "n_false_alarm_days": 1283,
+        "false_alarm_day_rate": 0.8692,
+        "useful_horizon_days": 3,
+        "false_alarm_day_rate_lookback_window": 0.6579,
+        "lookback_window_days": 14
+      }
+    }
+  },
+  "example_plot_location": "10.712_77.208",
+  "outputs": {
+    "timeseries": "tcdl_timeseries.csv",
+    "warnings": "tcdl_warnings.csv",
+    "lead_time": "tcdl_lead_time.csv",
+    "timeline_plot": "tcdl_example_timeline.png"
+  }
+}

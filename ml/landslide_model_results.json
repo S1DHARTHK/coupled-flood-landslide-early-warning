@@ -1,0 +1,396 @@
+{
+  "_warning": "SYNTHETIC / DUMMY DATA -- NOT FOR RESEARCH RESULTS. These metrics describe a simulated dataset and must not be reported as real-world landslide prediction performance.",
+  "model": "landslide_xgboost",
+  "version": "1.0",
+  "random_state": 42,
+  "dataset": {
+    "path": "synthetic_master_dataset.csv",
+    "n_rows": 9864,
+    "n_columns": 22,
+    "date_min": "2018-01-01",
+    "date_max": "2020-12-31",
+    "n_unique_dates": 1096,
+    "n_locations": 9,
+    "missing_values_in_model_columns": {
+      "rainfall_1d_mm": 0,
+      "rainfall_3d_mm": 0,
+      "rainfall_7d_mm": 0,
+      "rainfall_14d_mm": 0,
+      "rainfall_30d_mm": 0,
+      "soil_moisture": 0,
+      "temperature_c": 0,
+      "humidity_percent": 0,
+      "elevation_m": 0,
+      "slope_degree": 0,
+      "aspect_degree": 0,
+      "curvature": 0,
+      "land_cover": 0,
+      "lithology": 0,
+      "landslide": 0,
+      "date": 0,
+      "latitude": 0,
+      "longitude": 0
+    }
+  },
+  "features": {
+    "feature_names": [
+      "rainfall_1d_mm",
+      "rainfall_3d_mm",
+      "rainfall_7d_mm",
+      "rainfall_14d_mm",
+      "rainfall_30d_mm",
+      "soil_moisture",
+      "temperature_c",
+      "humidity_percent",
+      "elevation_m",
+      "slope_degree",
+      "aspect_degree",
+      "curvature",
+      "land_cover",
+      "lithology"
+    ],
+    "n_features": 14,
+    "common_features": [
+      "rainfall_1d_mm",
+      "rainfall_3d_mm",
+      "rainfall_7d_mm",
+      "rainfall_14d_mm",
+      "rainfall_30d_mm",
+      "soil_moisture",
+      "temperature_c",
+      "humidity_percent",
+      "elevation_m"
+    ],
+    "landslide_specific_features": [
+      "slope_degree",
+      "aspect_degree",
+      "curvature",
+      "land_cover",
+      "lithology"
+    ],
+    "categorical_features": [
+      "land_cover",
+      "lithology"
+    ],
+    "target": "landslide"
+  },
+  "categorical_handling": {
+    "method": "xgboost native categorical (enable_categorical=True)",
+    "one_hot": false,
+    "category_schema": {
+      "land_cover": [
+        "forest",
+        "agriculture",
+        "shrubland",
+        "built_up",
+        "barren"
+      ],
+      "lithology": [
+        "granite_gneiss",
+        "laterite",
+        "schist",
+        "sandstone",
+        "shale",
+        "alluvium"
+      ]
+    },
+    "fitted_from_data": false,
+    "leakage_note": "Category schema is a constant declared in code and in DATA_DICTIONARY.md, not inferred per split, so codes are identical across train/validation/test."
+  },
+  "split": {
+    "method": "chronological, cut on unique-date boundaries (no shuffling)",
+    "fractions_requested": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "train_size": 6903,
+    "validation_size": 1485,
+    "test_size": 1476,
+    "train_date_range": [
+      "2018-01-01",
+      "2020-02-06"
+    ],
+    "validation_date_range": [
+      "2020-02-07",
+      "2020-07-20"
+    ],
+    "test_date_range": [
+      "2020-07-21",
+      "2020-12-31"
+    ],
+    "matches_flood_baseline": true
+  },
+  "class_distribution": {
+    "overall": {
+      "n_rows": 9864,
+      "n_negative": 9140,
+      "n_positive": 724,
+      "positive_rate": 0.073398,
+      "neg_pos_ratio": 12.6243
+    },
+    "train": {
+      "n_rows": 6903,
+      "n_negative": 6411,
+      "n_positive": 492,
+      "positive_rate": 0.071273,
+      "neg_pos_ratio": 13.0305
+    },
+    "validation": {
+      "n_rows": 1485,
+      "n_negative": 1364,
+      "n_positive": 121,
+      "positive_rate": 0.081481,
+      "neg_pos_ratio": 11.2727
+    },
+    "test": {
+      "n_rows": 1476,
+      "n_negative": 1365,
+      "n_positive": 111,
+      "positive_rate": 0.075203,
+      "neg_pos_ratio": 12.2973
+    }
+  },
+  "class_imbalance_handling": {
+    "method": "scale_pos_weight",
+    "scale_pos_weight": 13.03048780487805,
+    "computed_on": "training split only",
+    "note": "Recomputed for the landslide target; not copied from flood."
+  },
+  "preprocessing": {
+    "fitted_transformations": "none",
+    "scaling": "not applied (tree model is scale-invariant)",
+    "missing_value_policy": "no rows dropped; NaN passed to XGBoost native handling"
+  },
+  "model_parameters": {
+    "objective": "binary:logistic",
+    "base_score": null,
+    "booster": null,
+    "callbacks": null,
+    "colsample_bylevel": null,
+    "colsample_bynode": null,
+    "colsample_bytree": 0.85,
+    "device": null,
+    "early_stopping_rounds": 50,
+    "enable_categorical": true,
+    "eval_metric": "aucpr",
+    "feature_types": null,
+    "feature_weights": null,
+    "gamma": null,
+    "grow_policy": null,
+    "importance_type": null,
+    "interaction_constraints": null,
+    "learning_rate": 0.05,
+    "max_bin": null,
+    "max_cat_threshold": null,
+    "max_cat_to_onehot": 1,
+    "max_delta_step": null,
+    "max_depth": 5,
+    "max_leaves": null,
+    "min_child_weight": 2,
+    "missing": NaN,
+    "monotone_constraints": null,
+    "multi_strategy": null,
+    "n_estimators": 500,
+    "n_jobs": 4,
+    "num_parallel_tree": null,
+    "random_state": 42,
+    "reg_alpha": null,
+    "reg_lambda": 1.0,
+    "sampling_method": null,
+    "scale_pos_weight": 13.03048780487805,
+    "subsample": 0.85,
+    "tree_method": "hist",
+    "validate_parameters": null,
+    "verbosity": null
+  },
+  "early_stopping": {
+    "best_iteration": 43,
+    "early_stopping_rounds": 50,
+    "metric": "aucpr",
+    "selected_on": "validation split",
+    "trees_saved": 44
+  },
+  "decision_threshold": 0.5,
+  "metrics": {
+    "train": {
+      "split": "Training",
+      "n_rows": 6903,
+      "n_actual_positives": 492,
+      "n_predicted_positives": 922,
+      "threshold": 0.5,
+      "accuracy": 0.9171374764595104,
+      "precision": 0.4566160520607375,
+      "recall": 0.8556910569105691,
+      "f1": 0.5954738330975955,
+      "roc_auc": 0.9625369188881407,
+      "pr_auc": 0.7615752972654715,
+      "brier_score": 0.080157425180483,
+      "mean_predicted_probability": 0.262183278799057,
+      "observed_positive_rate": 0.07127335940895263,
+      "confusion_matrix": {
+        "true_negatives": 5910,
+        "false_positives": 501,
+        "false_negatives": 71,
+        "true_positives": 421
+      }
+    },
+    "validation": {
+      "split": "Validation",
+      "n_rows": 1485,
+      "n_actual_positives": 121,
+      "n_predicted_positives": 231,
+      "threshold": 0.5,
+      "accuracy": 0.8949494949494949,
+      "precision": 0.42424242424242425,
+      "recall": 0.8099173553719008,
+      "f1": 0.5568181818181818,
+      "roc_auc": 0.9247624875790699,
+      "pr_auc": 0.719230209221952,
+      "brier_score": 0.08501438472312527,
+      "mean_predicted_probability": 0.2648962438106537,
+      "observed_positive_rate": 0.08148148148148149,
+      "confusion_matrix": {
+        "true_negatives": 1231,
+        "false_positives": 133,
+        "false_negatives": 23,
+        "true_positives": 98
+      }
+    },
+    "test": {
+      "split": "Testing (final unseen)",
+      "n_rows": 1476,
+      "n_actual_positives": 111,
+      "n_predicted_positives": 233,
+      "threshold": 0.5,
+      "accuracy": 0.8848238482384824,
+      "precision": 0.37339055793991416,
+      "recall": 0.7837837837837838,
+      "f1": 0.5058139534883721,
+      "roc_auc": 0.9085338085338085,
+      "pr_auc": 0.6692445038586273,
+      "brier_score": 0.10191284818199112,
+      "mean_predicted_probability": 0.28846225142478943,
+      "observed_positive_rate": 0.07520325203252033,
+      "confusion_matrix": {
+        "true_negatives": 1219,
+        "false_positives": 146,
+        "false_negatives": 24,
+        "true_positives": 87
+      }
+    }
+  },
+  "calibration_summary": {
+    "train": {
+      "mean_predicted_probability": 0.262183278799057,
+      "observed_positive_rate": 0.07127335940895263,
+      "brier_score": 0.080157425180483
+    },
+    "validation": {
+      "mean_predicted_probability": 0.2648962438106537,
+      "observed_positive_rate": 0.08148148148148149,
+      "brier_score": 0.08501438472312527
+    },
+    "test": {
+      "mean_predicted_probability": 0.28846225142478943,
+      "observed_positive_rate": 0.07520325203252033,
+      "brier_score": 0.10191284818199112
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "rainfall_7d_mm",
+      "importance_gain": 92.98942565917969,
+      "split_count": 205.0,
+      "importance_normalised": 0.13724904848813596
+    },
+    {
+      "feature": "elevation_m",
+      "importance_gain": 87.9049301147461,
+      "split_count": 185.0,
+      "importance_normalised": 0.1297445158967274
+    },
+    {
+      "feature": "rainfall_3d_mm",
+      "importance_gain": 76.67972564697266,
+      "split_count": 212.0,
+      "importance_normalised": 0.1131765177467723
+    },
+    {
+      "feature": "slope_degree",
+      "importance_gain": 71.9155044555664,
+      "split_count": 33.0,
+      "importance_normalised": 0.10614469858376221
+    },
+    {
+      "feature": "humidity_percent",
+      "importance_gain": 68.3003921508789,
+      "split_count": 224.0,
+      "importance_normalised": 0.10080892281701372
+    },
+    {
+      "feature": "soil_moisture",
+      "importance_gain": 61.846343994140625,
+      "split_count": 253.0,
+      "importance_normalised": 0.09128297981726263
+    },
+    {
+      "feature": "lithology",
+      "importance_gain": 57.69198989868164,
+      "split_count": 57.0,
+      "importance_normalised": 0.08515130255780373
+    },
+    {
+      "feature": "aspect_degree",
+      "importance_gain": 26.454036712646484,
+      "split_count": 49.0,
+      "importance_normalised": 0.03904520693340279
+    },
+    {
+      "feature": "rainfall_30d_mm",
+      "importance_gain": 24.06576919555664,
+      "split_count": 295.0,
+      "importance_normalised": 0.035520209957326236
+    },
+    {
+      "feature": "rainfall_14d_mm",
+      "importance_gain": 23.68090057373047,
+      "split_count": 179.0,
+      "importance_normalised": 0.03495215771091076
+    },
+    {
+      "feature": "land_cover",
+      "importance_gain": 23.045438766479492,
+      "split_count": 11.0,
+      "importance_normalised": 0.03401423893382948
+    },
+    {
+      "feature": "rainfall_1d_mm",
+      "importance_gain": 21.736202239990234,
+      "split_count": 148.0,
+      "importance_normalised": 0.032081852899258634
+    },
+    {
+      "feature": "temperature_c",
+      "importance_gain": 21.122385025024414,
+      "split_count": 245.0,
+      "importance_normalised": 0.031175880762077467
+    },
+    {
+      "feature": "curvature",
+      "importance_gain": 20.09023666381836,
+      "split_count": 14.0,
+      "importance_normalised": 0.02965246689571668
+    }
+  ],
+  "artifact_reload_check": {
+    "max_probability_drift": 0.0,
+    "passed": true
+  },
+  "outputs": {
+    "model": "landslide_xgboost_model.json",
+    "features": "landslide_features.json",
+    "test_predictions": "landslide_test_predictions.csv",
+    "feature_importance_plot": "landslide_feature_importance.png"
+  }
+}

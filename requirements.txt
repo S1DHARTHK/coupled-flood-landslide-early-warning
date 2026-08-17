@@ -1,0 +1,25 @@
+# Kerala Flood-Landslide Early Warning System -- Python dependencies
+#
+# The project previously had no dependency file; this records the packages the
+# ML, TCDL and API layers already rely on, plus SHAP added for the
+# explainability layer. Versions are the ones the pipeline was developed and
+# verified against.
+#
+# Install:  pip install -r requirements.txt
+
+# --- Data and modelling (ml/) ---------------------------------------
+numpy==2.2.6
+pandas==2.3.1
+xgboost==3.4.0
+scikit-learn==1.7.2
+matplotlib==3.10.3
+
+# --- Explainability (ml/shap_explainability.py) ----------------------
+# Added for SHAP explanations of the two existing XGBoost models.
+# Explanation layer only: it does not participate in prediction or TCDL.
+shap==0.52.0
+
+# --- API layer (backend/) --------------------------------------------
+fastapi==0.141.1
+uvicorn==0.35.0
+pydantic==2.11.7
