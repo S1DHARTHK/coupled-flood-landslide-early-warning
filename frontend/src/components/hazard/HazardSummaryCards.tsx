@@ -16,15 +16,29 @@ function Card({
   sub,
   accent,
   trend,
+  glyph,
+  glyphKind = "line",
 }: {
   label: string;
   value: string;
   sub?: string;
   accent?: string;
   trend?: { glyph: string; cls: string; label: string };
+  glyph?: React.ReactNode;
+  glyphKind?: "line" | "emoji";
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="ews-elevated relative overflow-hidden rounded-2xl border border-gray-200/90 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      {glyph && (
+        <span
+          className={`ews-watermark ${glyphKind === "emoji" ? "ews-emoji" : ""}`}
+          style={
+            glyphKind === "line" && accent ? { color: accent } : undefined
+          }
+        >
+          {glyph}
+        </span>
+      )}
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
         {label}
       </p>

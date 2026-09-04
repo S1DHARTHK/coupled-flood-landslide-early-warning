@@ -1,31 +1,40 @@
 /**
- * Detailed analysis page: full temporal signal set for a chosen monitoring
- * point, plus the lead-time comparison across hazard scopes.
- * Location is selected by coordinates — no district is fabricated.
+ * Detailed analysis page, rendered as a CRT terminal session: the full
+ * temporal signal set for a chosen monitoring point, the current model inputs,
+ * the lead-time comparison across hazard scopes, TCDL rule activity, and the
+ * SHAP explainability section.
+ *
+ * Location is selected by coordinates — no district is fabricated. Every
+ * number is served by the backend; nothing is recomputed here.
  */
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import PageMeta from "../../components/common/PageMeta";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ComponentCard from "../../components/common/ComponentCard";
 import {
-  ProbabilityTrendChart,
-  RainfallChart,
-  RateOfIncreaseChart,
-  SmoothedProbabilityChart,
-  SoilMoistureChart,
-} from "../../components/hazard/TrendCharts";
+  Field,
+  Panel,
+  Prompt,
+  Rule,
+  SectionHead,
+  TerminalWindow,
+  TermEmpty,
+  TermError,
+  TermLoading,
+  TermSyntheticBanner,
+} from "../../components/terminal/TerminalUI";
+import { TERM } from "../../components/terminal/termColors";
 import {
-  EvaluationNotes,
-  EvaluationTable,
-  LeadTimeBarChart,
-} from "../../components/hazard/LeadTimeComparison";
-import {
-  EmptyBlock,
-  ErrorBlock,
-  LoadingBlock,
-  SyntheticDataBanner,
-} from "../../components/hazard/StateBlocks";
+  TermEvaluationNotes,
+  TermEvaluationTable,
+  TermLeadTimeChart,
+  TermProbabilityChart,
+  TermRainfallChart,
+  TermRateOfIncreaseChart,
+  TermSmoothedProbabilityChart,
+  TermSoilMoistureChart,
+} from "../../components/terminal/TermCharts";
+import TermShapSection from "../../components/terminal/TermShap";
 import { num, pct } from "../../components/hazard/hazardUtils";
 import { useApi } from "../../hooks/useApi";
 import { emptyTrends, getCurrent, getEvaluation, getTrends } from "../../services/api";
@@ -33,7 +42,7 @@ import type { HazardScope } from "../../services/api";
 
 export default function AnalysisPage() {
   const current = useApi(() => getCurrent(), []);
-  const locations = current.data?.locations ?? [];
+  const locations = useMemo(() => current.data?.locations ?? [], [current.data]);
   const [locId, setLocId] = useState<string | null>(null);
   const [scope, setScope] = useState<HazardScope>("any_hazard");
 
@@ -56,27 +65,20 @@ export default function AnalysisPage() {
     ];
   }, [env]);
 
-  const selectCls =
-    "rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-700 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200";
-
   // Charts are keyed by location so a location change remounts them cleanly
   // rather than updating in place, which races ApexCharts' async renderer.
-  const chartBlock = (
-    title: string,
-    desc: string,
-    node: React.ReactNode
-  ) => (
-    <ComponentCard title={title} desc={desc} key={`${title}-${activeId}`}>
+  const chartBlock = (title: string, desc: string, node: ReactNode) => (
+    <Panel title={title} desc={desc} key={`${title}-${activeId}`}>
       {trends.loading ? (
-        <LoadingBlock label="Loading signals…" height={280} />
+        <TermLoading label="loading signals…" height={280} />
       ) : trends.error ? (
-        <ErrorBlock message={trends.error} onRetry={trends.reload} height={280} />
+        <TermError message={trends.error} onRetry={trends.reload} height={280} />
       ) : !trends.data?.series.length ? (
-        <EmptyBlock message="No data for this location." height={280} />
+        <TermEmpty message="no data for this location" height={280} />
       ) : (
         node
       )}
-    </ComponentCard>
+    </Panel>
   );
 
   return (
@@ -85,229 +87,325 @@ export default function AnalysisPage() {
         title="Analysis | Kerala Flood–Landslide Early Warning"
         description="Detailed temporal analysis of hazard probabilities, environmental signals and lead-time performance."
       />
-      <PageBreadcrumb pageTitle="Analysis" />
-      <SyntheticDataBanner
-        dataMode={current.data?.data_mode}
-        sourceMode={current.sourceMode}
-        fallbackReason={current.fallbackReason}
-      />
 
-      {/* Location selector by coordinates */}
-      <div className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Monitoring point (latitude, longitude)
+      <TerminalWindow
+        path="~/analysis"
+        status={
+          <span className="flex items-center gap-2 text-[13px] text-[#5f8d68]">
+            <span className="text-[#39ff7a]">{locations.length}</span> points
           </span>
-          <select
-            className={selectCls}
-            value={activeId ?? ""}
-            onChange={(e) => setLocId(e.target.value)}
-          >
-            {locations.map((l) => (
-              <option key={l.location_id} value={l.location_id}>
-                {l.environment.latitude.toFixed(3)}, {l.environment.longitude.toFixed(3)}
-                {l.district ? ` — ${l.district}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-        {selected && (
-          <div className="flex flex-wrap gap-4 text-xs">
-            <span className="text-gray-500 dark:text-gray-400">
-              Flood{" "}
-              <span className="font-semibold text-gray-800 dark:text-white/90">
-                {pct(selected.flood.probability, 1)}
-              </span>
-            </span>
-            <span className="text-gray-500 dark:text-gray-400">
-              Landslide{" "}
-              <span className="font-semibold text-gray-800 dark:text-white/90">
-                {pct(selected.landslide.probability, 1)}
-              </span>
-            </span>
-            <span className="text-gray-500 dark:text-gray-400">
-              TCDL{" "}
-              <span className="font-semibold text-gray-800 dark:text-white/90">
-                {selected.tcdl.warning_type}
-              </span>
-            </span>
+        }
+      >
+        <div className="px-4 py-8 sm:px-8 sm:py-10">
+          <Prompt
+            command="./analyse --signals --lead-time"
+            comment="full temporal signal set"
+            cwd="~/analysis"
+          />
+          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#eafff1] sm:text-[30px] [text-shadow:0_0_14px_rgba(57,255,122,0.35)]">
+            Analysis
+          </h1>
+          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
+            Every signal the two XGBoost models and the TCDL rules consume, for one
+            monitoring point at a time, plus the evaluation the pipeline produced.
+          </p>
+
+          <div className="mt-5">
+            <TermSyntheticBanner
+              dataMode={current.data?.data_mode}
+              sourceMode={current.sourceMode}
+              fallbackReason={current.fallbackReason}
+            />
           </div>
-        )}
-      </div>
 
-      {/* ML probability signals */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {chartBlock(
-          "Hazard Probabilities Over Time",
-          "Raw model output: flood, landslide and coupled probability",
-          trends.data ? <ProbabilityTrendChart series={trends.data.series} /> : null
-        )}
-        {chartBlock(
-          "Smoothed Probabilities (TCDL input)",
-          "3-day moving averages actually evaluated by the TCDL rules",
-          trends.data ? <SmoothedProbabilityChart series={trends.data.series} /> : null
-        )}
-        {chartBlock(
-          "Rate of Increase",
-          "3-day change in each smoothed signal — the trend evidence TCDL uses",
-          trends.data ? <RateOfIncreaseChart series={trends.data.series} /> : null
-        )}
-        {chartBlock(
-          "Rainfall",
-          "3-day moving average and rate of increase",
-          trends.data ? <RainfallChart series={trends.data.series} /> : null
-        )}
-        {chartBlock(
-          "Soil Moisture",
-          "3-day moving average of root-zone soil moisture",
-          trends.data ? <SoilMoistureChart series={trends.data.series} /> : null
-        )}
-
-        {/* Current environmental conditions */}
-        <ComponentCard
-          title="Environmental Conditions"
-          desc={env ? `Model inputs at ${env.date}` : "Model inputs"}
-        >
-          {current.loading ? (
-            <LoadingBlock label="Loading conditions…" height={280} />
-          ) : !env ? (
-            <EmptyBlock message="No environmental data available." height={280} />
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3">
-                {envRows.map(([k, v]) => (
-                  <div
-                    key={k}
-                    className="flex items-baseline justify-between border-b border-gray-50 py-1 dark:border-gray-800"
+          {/* --------------------------------------- location selector */}
+          <div className="mt-6">
+            <Panel>
+              <div className="flex flex-wrap items-end gap-4">
+                <Field label="monitoring point (latitude, longitude)">
+                  <select
+                    className="crt-select"
+                    value={activeId ?? ""}
+                    onChange={(e) => setLocId(e.target.value)}
                   >
-                    <span className="truncate text-[11px] text-gray-500 dark:text-gray-400">
-                      {k}
+                    {locations.map((l) => (
+                      <option key={l.location_id} value={l.location_id}>
+                        {l.environment.latitude.toFixed(3)},{" "}
+                        {l.environment.longitude.toFixed(3)}
+                        {l.district ? ` — ${l.district}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                {selected && (
+                  <div className="flex flex-wrap gap-5 pb-1 text-[11px] text-[#3d6b47]">
+                    <span>
+                      flood{" "}
+                      <span style={{ color: TERM.dim }}>
+                        {pct(selected.flood.probability, 1)}
+                      </span>
                     </span>
-                    <span className="ml-2 shrink-0 text-xs font-medium text-gray-800 dark:text-white/90">
-                      {v === null
-                        ? "—"
-                        : typeof v === "number"
-                        ? num(v, 2)
-                        : String(v)}
+                    <span>
+                      landslide{" "}
+                      <span style={{ color: TERM.amber }}>
+                        {pct(selected.landslide.probability, 1)}
+                      </span>
+                    </span>
+                    <span>
+                      tcdl{" "}
+                      <span className="text-[#eafff1]">
+                        {selected.tcdl.warning_type}
+                      </span>
                     </span>
                   </div>
-                ))}
+                )}
               </div>
-              {env.unavailable_fields.length > 0 && (
-                <p className="mt-3 text-[11px] text-gray-500 dark:text-gray-400">
-                  Unavailable in this dataset: {env.unavailable_fields.join(", ")} —
-                  shown as “—” rather than substituted.
-                </p>
+            </Panel>
+          </div>
+
+          <Rule />
+
+          {/* -------------------------------------------- ML signals */}
+          <section>
+            <Prompt
+              command="cat signals.log | tail -200"
+              comment={activeId ? `location ${activeId}` : "no location"}
+              cwd="~/analysis"
+            />
+            <SectionHead
+              label="temporal signals"
+              title="Raw output, smoothed input, and rate of change"
+              desc="Nothing is smoothed or differenced here: the moving averages and rates are produced by TCDL V1.0 and merely plotted."
+            />
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              {chartBlock(
+                "hazard probabilities over time",
+                "Raw model output: flood, landslide and coupled probability",
+                trends.data ? (
+                  <TermProbabilityChart series={trends.data.series} />
+                ) : null
               )}
+              {chartBlock(
+                "smoothed probabilities (TCDL input)",
+                "3-day moving averages actually evaluated by the TCDL rules",
+                trends.data ? (
+                  <TermSmoothedProbabilityChart series={trends.data.series} />
+                ) : null
+              )}
+              {chartBlock(
+                "rate of increase",
+                "3-day change in each smoothed signal — the trend evidence TCDL uses",
+                trends.data ? (
+                  <TermRateOfIncreaseChart series={trends.data.series} />
+                ) : null
+              )}
+              {chartBlock(
+                "rainfall",
+                "3-day moving average and rate of increase",
+                trends.data ? <TermRainfallChart series={trends.data.series} /> : null
+              )}
+              {chartBlock(
+                "soil moisture",
+                "3-day moving average of root-zone soil moisture",
+                trends.data ? (
+                  <TermSoilMoistureChart series={trends.data.series} />
+                ) : null
+              )}
+
+              {/* Current model inputs */}
+              <Panel
+                title="environmental conditions"
+                desc={env ? `Model inputs at ${env.date}` : "Model inputs"}
+              >
+                {current.loading ? (
+                  <TermLoading label="loading conditions…" height={280} />
+                ) : !env ? (
+                  <TermEmpty
+                    message="no environmental data available"
+                    height={280}
+                  />
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
+                      {envRows.map(([k, v]) => (
+                        <div
+                          key={k}
+                          className="flex items-baseline justify-between border-b border-[#0f2a12] py-1"
+                        >
+                          <span className="truncate text-[11px] text-[#5f8d68]">
+                            {k}
+                          </span>
+                          <span className="ml-2 shrink-0 text-[11px] text-[#cfe9d5]">
+                            {v === null
+                              ? "—"
+                              : typeof v === "number"
+                              ? num(v, 2)
+                              : String(v)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {env.unavailable_fields.length > 0 && (
+                      <p className="mt-3 text-[10px] text-[#3d6b47]">
+                        unavailable in this dataset:{" "}
+                        {env.unavailable_fields.join(", ")} — shown as “—” rather than
+                        substituted.
+                      </p>
+                    )}
+                  </>
+                )}
+              </Panel>
+            </div>
+          </section>
+
+          <Rule />
+
+          {/* ------------------------------- lead time / system compare */}
+          <section>
+            <Prompt
+              command={`./evaluate --scope=${scope}`}
+              comment="produced by the TCDL pipeline"
+              cwd="~/analysis"
+            />
+            <SectionHead
+              label="lead-time & system comparison"
+              title="How much earlier does coupling warn?"
+              desc="Evaluation results served by the backend — not recalculated here."
+            />
+
+            <Panel>
+              <div className="flex flex-wrap items-end gap-4">
+                <Field label="event scope">
+                  <select
+                    className="crt-select"
+                    value={scope}
+                    onChange={(e) => setScope(e.target.value as HazardScope)}
+                  >
+                    <option value="any_hazard">any hazard onsets</option>
+                    <option value="flood">flood onsets</option>
+                    <option value="landslide">landslide onsets</option>
+                  </select>
+                </Field>
+                {evaluation.data && (
+                  <span className="pb-1 text-[11px] text-[#3d6b47]">
+                    evaluation period{" "}
+                    <span className="text-[#5f8d68]">
+                      {evaluation.data.evaluation_period.date_range.join(" → ")}
+                    </span>{" "}
+                    · {evaluation.data.evaluation_period.n_rows} rows
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-4">
+                {evaluation.loading ? (
+                  <TermLoading label="loading evaluation…" height={300} />
+                ) : evaluation.error ? (
+                  <TermError
+                    message={evaluation.error}
+                    onRetry={evaluation.reload}
+                    height={300}
+                  />
+                ) : evaluation.data ? (
+                  <div className="space-y-5">
+                    <TermLeadTimeChart
+                      key={`lead-${scope}`}
+                      evaluation={evaluation.data}
+                    />
+                    <TermEvaluationTable evaluation={evaluation.data} />
+                    <TermEvaluationNotes evaluation={evaluation.data} />
+                  </div>
+                ) : (
+                  <TermEmpty message="no evaluation results" height={300} />
+                )}
+              </div>
+            </Panel>
+          </section>
+
+          {/* ------------------------------------------ rule activity */}
+          {evaluation.data && (
+            <>
+              <Rule />
+              <section>
+                <Prompt
+                  command="grep -c 'RULE_FIRED' tcdl.log"
+                  comment="rule firing counts"
+                  cwd="~/analysis"
+                />
+                <SectionHead
+                  label="tcdl rule activity"
+                  title="How often each rule fired"
+                  desc="R1/R2 replicate the single-model baselines; R3–R7 are the coupling rules."
+                />
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {Object.entries(evaluation.data.rule_firing_counts).map(
+                    ([rule, n]) => {
+                      const isBaseline =
+                        evaluation.data!.rule_classification.baseline_replicating.includes(
+                          rule
+                        );
+                      const total = evaluation.data!.evaluation_period.n_rows || 1;
+                      const color = isBaseline ? TERM.faint : TERM.phosphor;
+                      return (
+                        <div key={rule} className="crt-panel p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] text-[#cfe9d5]">{rule}</span>
+                            <span
+                              className="rounded-[2px] px-1.5 py-0.5 text-[10px]"
+                              style={{ color, border: `1px solid ${color}55` }}
+                            >
+                              {isBaseline ? "baseline" : "coupling"}
+                            </span>
+                          </div>
+                          <p className="mt-1.5 text-[11px] leading-snug text-[#5f8d68]">
+                            {evaluation.data!.rules[rule]}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="crt-meter flex-1">
+                              <div
+                                className="crt-meter-fill"
+                                style={{
+                                  width: `${Math.min(100, (n / total) * 100)}%`,
+                                  background: `linear-gradient(90deg, ${color}55, ${color})`,
+                                  boxShadow: `0 0 10px ${color}70`,
+                                }}
+                              />
+                            </div>
+                            <span className="shrink-0 text-[10px] tabular-nums text-[#3d6b47]">
+                              {n} days ({((n / total) * 100).toFixed(1)}%)
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                  )}
+                </div>
+              </section>
             </>
           )}
-        </ComponentCard>
-      </div>
 
-      {/* Lead-time and system comparison */}
-      <div className="mt-5">
-        <ComponentCard
-          title="Lead-Time & System Comparison"
-          desc="Evaluation results produced by the TCDL pipeline — not recalculated here"
-        >
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Event scope
-              </span>
-              <select
-                className={selectCls}
-                value={scope}
-                onChange={(e) => setScope(e.target.value as HazardScope)}
-              >
-                <option value="any_hazard">Any hazard onsets</option>
-                <option value="flood">Flood onsets</option>
-                <option value="landslide">Landslide onsets</option>
-              </select>
-            </label>
-            {evaluation.data && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                Evaluation period{" "}
-                {evaluation.data.evaluation_period.date_range.join(" → ")} ·{" "}
-                {evaluation.data.evaluation_period.n_rows} rows
-              </span>
-            )}
+          <Rule />
+
+          {/* -------------------------------------------------- shap */}
+          <TermShapSection locationId={activeId} />
+
+          {/* ------------------------------------------------ footer */}
+          <div className="crt-rule mt-10" />
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
+            <p className="text-[#5f8d68]">
+              <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
+              &quot;synthetic development data · not a real-world Kerala
+              warning&quot; <span className="crt-caret align-middle" />
+            </p>
+            <p className="text-[#1c7a3c]">
+              scope: {scope} · point: {activeId ?? "—"}
+            </p>
           </div>
-
-          {evaluation.loading ? (
-            <LoadingBlock label="Loading evaluation…" height={300} />
-          ) : evaluation.error ? (
-            <ErrorBlock
-              message={evaluation.error}
-              onRetry={evaluation.reload}
-              height={300}
-            />
-          ) : evaluation.data ? (
-            <div className="space-y-5">
-              <LeadTimeBarChart evaluation={evaluation.data} />
-              <EvaluationTable evaluation={evaluation.data} />
-              <EvaluationNotes evaluation={evaluation.data} />
-            </div>
-          ) : (
-            <EmptyBlock message="No evaluation results." height={300} />
-          )}
-        </ComponentCard>
-      </div>
-
-      {/* TCDL rule firing */}
-      {evaluation.data && (
-        <div className="mt-5">
-          <ComponentCard
-            title="TCDL Rule Activity"
-            desc="How often each rule fired across the evaluation period"
-          >
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {Object.entries(evaluation.data.rule_firing_counts).map(([rule, n]) => {
-                const isBaseline =
-                  evaluation.data!.rule_classification.baseline_replicating.includes(
-                    rule
-                  );
-                const total = evaluation.data!.evaluation_period.n_rows || 1;
-                return (
-                  <div
-                    key={rule}
-                    className="rounded-lg border border-gray-100 p-3 dark:border-gray-800"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                        {rule}
-                      </span>
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] ${
-                          isBaseline
-                            ? "bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-400"
-                            : "bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400"
-                        }`}
-                      >
-                        {isBaseline ? "baseline" : "coupling"}
-                      </span>
-                    </div>
-                    <p className="mt-1.5 text-[11px] leading-snug text-gray-500 dark:text-gray-400">
-                      {evaluation.data!.rules[rule]}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/5">
-                        <div
-                          className="h-full rounded-full bg-brand-500"
-                          style={{ width: `${Math.min(100, (n / total) * 100)}%` }}
-                        />
-                      </div>
-                      <span className="shrink-0 text-[11px] font-medium text-gray-700 dark:text-gray-300">
-                        {n} days ({((n / total) * 100).toFixed(1)}%)
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ComponentCard>
         </div>
-      )}
+      </TerminalWindow>
     </>
   );
 }

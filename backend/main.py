@@ -34,6 +34,7 @@ from .schemas import (
     WarningExplanation, build_observation_model,
 )
 from .services.model_service import ArtifactError, ModelService
+from .services.shap_service import SHAPService, SHAPUnavailable
 from .services.tcdl_service import (
     InsufficientHistory, TCDLService, TCDLUnavailable, WARNING_TYPES, classify_warning,
 )
@@ -49,15 +50,17 @@ CALIBRATION_NOTE = (
 # ---------------------------------------------------------------------
 # Service singletons, built once at startup
 # ---------------------------------------------------------------------
-STATE: dict[str, Any] = {"models": None, "tcdl": None}
+STATE: dict[str, Any] = {"models": None, "tcdl": None, "shap": None}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     models = ModelService()
     tcdl = TCDLService(models)
+    shap_service = SHAPService()
     STATE["models"] = models
     STATE["tcdl"] = tcdl
+    STATE["shap"] = shap_service
 
     # Request schemas are built from the loaded feature contracts, so the
     # OpenAPI documentation always matches the served models.
@@ -113,6 +116,17 @@ def get_tcdl() -> TCDLService:
     if not t.ready:
         raise HTTPException(503, {"error": "TCDL unavailable", "details": t.errors})
     return t
+
+
+def get_shap() -> SHAPService:
+    sv = STATE.get("shap")
+    if sv is None:
+        raise HTTPException(503, "SHAP service not initialised.")
+    if not sv.ready:
+        # 503 is deliberate: the dashboard treats this as "explanation
+        # unavailable" and keeps working; it never fabricates SHAP values.
+        raise HTTPException(503, {"error": "SHAP unavailable", "details": sv.errors})
+    return sv
 
 
 def num(v: Any) -> Any:
@@ -688,6 +702,64 @@ def models_features():
                        "ml/flood_model_results.json", "ml/landslide_model_results.json"],
             "note": ("Importance values were computed during training; the API does "
                      "not calculate feature importance.")}
+
+
+# ---------------------------------------------------------------------
+# SHAP explainability (explanation layer only -- never modifies a
+# prediction, never feeds TCDL)
+# ---------------------------------------------------------------------
+@app.get("/explain/global", tags=["explainability"],
+         summary="Global mean|SHAP| feature importance for one XGBoost model")
+def explain_global(model: str = Query("flood", description="flood | landslide")):
+    """
+    Served from ml/shap_explainability.py. SHAP is computed in the ML layer,
+    not here and not in the browser. Values are in log-odds space.
+    """
+    sv = get_shap()
+    try:
+        payload = sv.global_importance(model)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except SHAPUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return {
+        "data_mode": config.DATA_MODE,
+        "synthetic_data_warning": (config.SYNTHETIC_WARNING
+                                   if config.DATA_MODE == "synthetic" else None),
+        **payload,
+        "interpretation_note": (
+            "Mean |SHAP| ranks how much each feature moves this model's output on "
+            "average. It describes model behaviour on synthetic data, not physical "
+            "causation."),
+        "source": "ml/shap_explainability.py",
+    }
+
+
+@app.get("/explain/current", tags=["explainability"],
+         summary="SHAP explanation of a location's current model prediction")
+def explain_current(model: str = Query("flood", description="flood | landslide"),
+                    location_id: str = Query(..., description="e.g. 11.842_76.104"),
+                    mode: str = Query("current", description="current | peak")):
+    """
+    Explains the same timestep the dashboard shows for this location. The row
+    is scored by the same frozen model the pipeline uses, so the explained
+    probability equals the displayed probability. No SHAP value is computed in
+    the frontend; this endpoint returns the ML layer's own explanation.
+    """
+    sv = get_shap()
+    try:
+        payload = sv.explain_current(model, location_id, mode)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except SHAPUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(422, f"SHAP explanation failed: {exc}") from exc
+    payload["data_mode"] = config.DATA_MODE
+    payload["synthetic_data_warning"] = (config.SYNTHETIC_WARNING
+                                         if config.DATA_MODE == "synthetic" else None)
+    payload["source"] = "ml/shap_explainability.py"
+    return payload
 
 
 @app.get("/", tags=["system"], include_in_schema=False)

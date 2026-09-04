@@ -342,3 +342,80 @@ export interface MapLocation extends LocationRef {
   level: HazardLevel;
   date?: string;
 }
+
+// ---------------------------------------------------------------------
+// SHAP explainability (served by /explain/global and /explain/current)
+//
+// The frontend NEVER computes these values. They are produced by
+// ml/shap_explainability.py and served verbatim by the FastAPI backend.
+// SHAP values are in log-odds (margin) space and describe MODEL BEHAVIOUR,
+// not physical causation.
+// ---------------------------------------------------------------------
+
+/** One row of global mean|SHAP| importance for a model. */
+export interface ShapImportanceRow {
+  feature: string;
+  mean_abs_shap: number;
+  share_of_total: number;
+  mean_signed_shap: number;
+  is_categorical: boolean;
+}
+
+export interface ShapGlobalResponse {
+  data_mode: string;
+  synthetic_data_warning: string | null;
+  model: "flood" | "landslide";
+  model_label: string;
+  n_features: number;
+  categorical_features: string[];
+  shap_space: string;
+  importance: ShapImportanceRow[];
+  interpretation_note: string;
+  source: string;
+}
+
+/** One feature's contribution to a single prediction. */
+export interface ShapContribution {
+  feature: string;
+  value: number | string | null;
+  shap_value: number;
+  abs_shap_value: number;
+  direction: string;
+  effect: "increases risk" | "decreases risk" | "neutral";
+  magnitude: number;
+  is_categorical: boolean;
+}
+
+export interface ShapExplanationResponse {
+  data_mode?: string;
+  synthetic_data_warning?: string | null;
+  model: "flood" | "landslide";
+  model_label: string;
+  target: string | null;
+  probability: number;
+  prediction: number;
+  decision_threshold: number;
+  raw_margin: number;
+  base_value: number;
+  base_value_probability: number;
+  sum_shap_values: number;
+  shap_space: string;
+  additivity_check: {
+    reconstructed_margin: number;
+    model_margin: number;
+    max_abs_difference: number;
+    passed: boolean;
+  };
+  n_features: number;
+  contributions: ShapContribution[];
+  interpretation_note: string;
+  sample?: {
+    location_id?: string;
+    mode?: "current" | "peak";
+    date: string;
+    latitude: number;
+    longitude: number;
+    actual_label: number | null;
+  };
+  source?: string;
+}

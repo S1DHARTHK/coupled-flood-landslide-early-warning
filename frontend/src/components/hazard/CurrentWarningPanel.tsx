@@ -70,7 +70,7 @@ export default function CurrentWarningPanel({ location, ruleDescriptions }: Prop
   const fired = new Set<TcdlRuleId>(tcdl.triggered_rules ?? []);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="ews-elevated flex h-full flex-col rounded-2xl border border-gray-200/90 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       {/* Header: the warning state, made visually prominent */}
       <div
         className="rounded-t-2xl px-5 py-4"

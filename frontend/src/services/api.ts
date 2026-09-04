@@ -38,6 +38,8 @@ import type {
   LocationsResponse,
   ModelsStatusResponse,
   PerformanceResponse,
+  ShapExplanationResponse,
+  ShapGlobalResponse,
   TrendsResponse,
   WarningsResponse,
 } from "../types/hazard";
@@ -249,6 +251,38 @@ export const getModelFeatures = () =>
   withFallback<FeaturesResponse>("/models/features", () => fx.models_features);
 
 // ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+// SHAP explainability
+//
+// SHAP is computed in the ML layer and served by the backend. These
+// functions only fetch it. The fixture fallback holds RECORDED backend
+// responses (never hand-written SHAP values); if a recording is absent
+// the original error propagates so the UI shows an unavailable state
+// rather than substituting unrelated numbers.
+// ---------------------------------------------------------------------
+export type HazardModel = "flood" | "landslide";
+
+export const getShapGlobal = (model: HazardModel) =>
+  withFallback<ShapGlobalResponse>(
+    `/explain/global?model=${model}`,
+    () => (fx.shap?.global ?? {})[model]
+  );
+
+export type ExplainMode = "current" | "peak";
+
+export const getShapExplanation = (
+  model: HazardModel,
+  locationId: string,
+  mode: ExplainMode = "current"
+) =>
+  withFallback<ShapExplanationResponse>(
+    `/explain/current?model=${model}&location_id=${encodeURIComponent(
+      locationId
+    )}&mode=${mode}`,
+    () => (((fx.shap?.current ?? {})[mode] ?? {})[model] ?? {})[locationId]
+  );
+
+
 // Prediction (live only -- no fixture, because a prediction for
 // caller-supplied input cannot be faked without inventing results)
 // ---------------------------------------------------------------------

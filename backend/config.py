@@ -41,6 +41,12 @@ TCDL_TIMESERIES = ML_DIR / "tcdl_timeseries.csv"
 TCDL_WARNINGS = ML_DIR / "tcdl_warnings.csv"
 TCDL_LEAD_TIME = ML_DIR / "tcdl_lead_time.csv"
 
+# --- SHAP explainability (ml/shap_explainability.py + its outputs) -----
+# The SHAP module is imported and served, never modified -- the same
+# pattern used for the TCDL module above.
+SHAP_MODULE = ML_DIR / "shap_explainability.py"
+SHAP_OUTPUT_DIR = ML_DIR / "outputs" / "shap"
+
 REQUIRED_ARTIFACTS = {
     "master_dataset": MASTER_DATASET,
     "flood_model": FLOOD_MODEL,

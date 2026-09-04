@@ -40,6 +40,9 @@ export default defineConfig({
   ],
 
   server: {
-    allowedHosts: ['sources-locale-dam-kit.trycloudflare.com'],
+    // Honour PORT when the environment assigns one (e.g. a preview runner),
+    // otherwise fall back to Vite's usual 5173.
+    port: Number(process.env.PORT) || 5173,
+    allowedHosts: ['.trycloudflare.com'],
   },
 });
