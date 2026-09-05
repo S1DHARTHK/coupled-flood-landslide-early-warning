@@ -112,5 +112,4 @@ Based on these temporal and cross-hazard conditions, TCDL generates the final wa
 
 The purpose of TCDL is to investigate whether combining the evolving risk signals of both hazards can provide useful warning time before a historical disaster event.
 
-```
-```
+
