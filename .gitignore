@@ -19,3 +19,13 @@ frontend/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local / generated data
+updated_data/
+collecteddata/
+
+# Generated model artifacts
+models/real/*_training_log.txt
+
+# Local synthetic/generated datasets
+real_master_dataset.csv
