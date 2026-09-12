@@ -29,3 +29,5 @@ models/real/*_training_log.txt
 
 # Local synthetic/generated datasets
 real_master_dataset.csv
+# Collected/raw research data
+collecteddata/
