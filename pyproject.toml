@@ -1,2 +1,19 @@
+[project]
+name = "coupled-flood-landslide-early-warning"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "numpy==2.2.6",
+    "pandas==2.3.1",
+    "xgboost==3.4.0",
+    "scikit-learn==1.7.2",
+    "matplotlib==3.10.3",
+    "shap==0.52.0",
+    "fastapi==0.141.1",
+    "uvicorn==0.35.0",
+    "pydantic==2.11.7",
+    "scipy==1.16.0",
+]
+
 [tool.vercel]
 entrypoint = "backend.main:app"
