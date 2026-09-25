@@ -1,0 +1,341 @@
+{
+  "_warning": "REAL DATA -- Kerala district-day Master Dataset (14 districts, 2012-01-30..2024-12-31). Labels are IMD-reported damaging flood / heavy-rain district-days (0 = not reported, not proven absence); river_level_m is missing for 3 districts and before mid-2015 for 7; static features take one value per district. Read the limitations in updated_data/master_dataset/REAL_DATA_DICTIONARY.md before quoting metrics.",
+  "model": "flood_xgboost",
+  "version": "1.0",
+  "random_state": 42,
+  "dataset": {
+    "path": "real_master_dataset.csv",
+    "n_rows": 66080,
+    "n_columns": 23,
+    "date_min": "2012-01-30",
+    "date_max": "2024-12-31",
+    "n_unique_dates": 4720,
+    "n_locations": 14,
+    "missing_values_in_model_columns": {
+      "rainfall_1d_mm": 0,
+      "rainfall_3d_mm": 0,
+      "rainfall_7d_mm": 0,
+      "rainfall_14d_mm": 0,
+      "rainfall_30d_mm": 0,
+      "soil_moisture": 0,
+      "temperature_c": 0,
+      "humidity_percent": 0,
+      "elevation_m": 0,
+      "river_level_m": 25738,
+      "distance_to_river_km": 0,
+      "drainage_density": 0,
+      "flood": 0,
+      "date": 0,
+      "latitude": 0,
+      "longitude": 0
+    }
+  },
+  "features": {
+    "feature_names": [
+      "rainfall_1d_mm",
+      "rainfall_3d_mm",
+      "rainfall_7d_mm",
+      "rainfall_14d_mm",
+      "rainfall_30d_mm",
+      "soil_moisture",
+      "temperature_c",
+      "humidity_percent",
+      "elevation_m",
+      "river_level_m",
+      "distance_to_river_km",
+      "drainage_density"
+    ],
+    "n_features": 12,
+    "common_features": [
+      "rainfall_1d_mm",
+      "rainfall_3d_mm",
+      "rainfall_7d_mm",
+      "rainfall_14d_mm",
+      "rainfall_30d_mm",
+      "soil_moisture",
+      "temperature_c",
+      "humidity_percent",
+      "elevation_m"
+    ],
+    "flood_specific_features": [
+      "river_level_m",
+      "distance_to_river_km",
+      "drainage_density"
+    ],
+    "target": "flood"
+  },
+  "split": {
+    "method": "chronological, cut on unique-date boundaries (no shuffling)",
+    "fractions_requested": {
+      "train": 0.7,
+      "validation": 0.15,
+      "test": 0.15
+    },
+    "train_size": 46256,
+    "validation_size": 9912,
+    "test_size": 9912,
+    "train_date_range": [
+      "2012-01-30",
+      "2021-02-14"
+    ],
+    "validation_date_range": [
+      "2021-02-15",
+      "2023-01-23"
+    ],
+    "test_date_range": [
+      "2023-01-24",
+      "2024-12-31"
+    ]
+  },
+  "class_distribution": {
+    "overall": {
+      "n_rows": 66080,
+      "n_negative": 62955,
+      "n_positive": 3125,
+      "positive_rate": 0.047291,
+      "neg_pos_ratio": 20.1456
+    },
+    "train": {
+      "n_rows": 46256,
+      "n_negative": 43496,
+      "n_positive": 2760,
+      "positive_rate": 0.059668,
+      "neg_pos_ratio": 15.7594
+    },
+    "validation": {
+      "n_rows": 9912,
+      "n_negative": 9670,
+      "n_positive": 242,
+      "positive_rate": 0.024415,
+      "neg_pos_ratio": 39.9587
+    },
+    "test": {
+      "n_rows": 9912,
+      "n_negative": 9789,
+      "n_positive": 123,
+      "positive_rate": 0.012409,
+      "neg_pos_ratio": 79.5854
+    }
+  },
+  "class_imbalance_handling": {
+    "method": "scale_pos_weight",
+    "scale_pos_weight": 15.759420289855072,
+    "computed_on": "training split only"
+  },
+  "preprocessing": {
+    "fitted_transformations": "none",
+    "scaling": "not applied (tree model is scale-invariant)",
+    "missing_value_policy": "no rows dropped; NaN passed to XGBoost native handling",
+    "missing_values_by_split": {
+      "river_level_m": {
+        "train": {
+          "n_missing": 21110,
+          "n_rows": 46256,
+          "pct_missing": 45.64
+        },
+        "validation": {
+          "n_missing": 2480,
+          "n_rows": 9912,
+          "pct_missing": 25.02
+        },
+        "test": {
+          "n_missing": 2148,
+          "n_rows": 9912,
+          "pct_missing": 21.67
+        }
+      }
+    }
+  },
+  "model_parameters": {
+    "objective": "binary:logistic",
+    "base_score": null,
+    "booster": null,
+    "callbacks": null,
+    "colsample_bylevel": null,
+    "colsample_bynode": null,
+    "colsample_bytree": 0.85,
+    "device": null,
+    "early_stopping_rounds": 50,
+    "enable_categorical": true,
+    "eval_metric": "aucpr",
+    "feature_types": null,
+    "feature_weights": null,
+    "gamma": null,
+    "grow_policy": null,
+    "importance_type": null,
+    "interaction_constraints": null,
+    "learning_rate": 0.05,
+    "max_bin": null,
+    "max_cat_threshold": null,
+    "max_cat_to_onehot": null,
+    "max_delta_step": null,
+    "max_depth": 5,
+    "max_leaves": null,
+    "min_child_weight": 2,
+    "missing": NaN,
+    "monotone_constraints": null,
+    "multi_strategy": null,
+    "n_estimators": 500,
+    "n_jobs": 4,
+    "num_parallel_tree": null,
+    "random_state": 42,
+    "reg_alpha": null,
+    "reg_lambda": 1.0,
+    "sampling_method": null,
+    "scale_pos_weight": 15.759420289855072,
+    "subsample": 0.85,
+    "tree_method": "hist",
+    "validate_parameters": null,
+    "verbosity": null
+  },
+  "best_iteration": 8,
+  "decision_threshold": 0.5,
+  "metrics": {
+    "train": {
+      "split": "Training",
+      "n_rows": 46256,
+      "n_actual_positives": 2760,
+      "n_predicted_positives": 13403,
+      "threshold": 0.5,
+      "accuracy": 0.7571125907990315,
+      "precision": 0.18383943893158247,
+      "recall": 0.8927536231884058,
+      "f1": 0.30489389346037243,
+      "roc_auc": 0.8993903778924867,
+      "pr_auc": 0.4055744972235034,
+      "brier_score": 0.18457632750170067,
+      "mean_predicted_probability": 0.42864343523979187,
+      "observed_positive_rate": 0.059667934970598406,
+      "confusion_matrix": {
+        "true_negatives": 32557,
+        "false_positives": 10939,
+        "false_negatives": 296,
+        "true_positives": 2464
+      }
+    },
+    "validation": {
+      "split": "Validation",
+      "n_rows": 9912,
+      "n_actual_positives": 242,
+      "n_predicted_positives": 3638,
+      "threshold": 0.5,
+      "accuracy": 0.6481033091202583,
+      "precision": 0.05387575590984057,
+      "recall": 0.8099173553719008,
+      "f1": 0.10103092783505155,
+      "roc_auc": 0.8194116591315049,
+      "pr_auc": 0.10318422913132735,
+      "brier_score": 0.2101340254343315,
+      "mean_predicted_probability": 0.4487206041812897,
+      "observed_positive_rate": 0.024414850686037128,
+      "confusion_matrix": {
+        "true_negatives": 6228,
+        "false_positives": 3442,
+        "false_negatives": 46,
+        "true_positives": 196
+      }
+    },
+    "test": {
+      "split": "Testing (final unseen)",
+      "n_rows": 9912,
+      "n_actual_positives": 123,
+      "n_predicted_positives": 2938,
+      "threshold": 0.5,
+      "accuracy": 0.7133777239709443,
+      "precision": 0.037440435670524165,
+      "recall": 0.8943089430894309,
+      "f1": 0.0718719372754002,
+      "roc_auc": 0.8656613902945649,
+      "pr_auc": 0.07541413047920249,
+      "brier_score": 0.19295576646180737,
+      "mean_predicted_probability": 0.42840576171875,
+      "observed_positive_rate": 0.012409200968523002,
+      "confusion_matrix": {
+        "true_negatives": 6961,
+        "false_positives": 2828,
+        "false_negatives": 13,
+        "true_positives": 110
+      }
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "rainfall_14d_mm",
+      "importance_gain": 1087.2288818359375,
+      "split_count": 184.0,
+      "importance_normalised": 0.33709738534169537
+    },
+    {
+      "feature": "rainfall_7d_mm",
+      "importance_gain": 400.0043029785156,
+      "split_count": 98.0,
+      "importance_normalised": 0.12402209591028168
+    },
+    {
+      "feature": "rainfall_30d_mm",
+      "importance_gain": 297.362060546875,
+      "split_count": 206.0,
+      "importance_normalised": 0.09219767317154168
+    },
+    {
+      "feature": "river_level_m",
+      "importance_gain": 238.5660400390625,
+      "split_count": 250.0,
+      "importance_normalised": 0.07396785504142404
+    },
+    {
+      "feature": "rainfall_3d_mm",
+      "importance_gain": 217.14833068847656,
+      "split_count": 107.0,
+      "importance_normalised": 0.06732725346919652
+    },
+    {
+      "feature": "drainage_density",
+      "importance_gain": 200.72579956054688,
+      "split_count": 148.0,
+      "importance_normalised": 0.062235416417765914
+    },
+    {
+      "feature": "rainfall_1d_mm",
+      "importance_gain": 192.22598266601562,
+      "split_count": 68.0,
+      "importance_normalised": 0.05960003200248874
+    },
+    {
+      "feature": "soil_moisture",
+      "importance_gain": 178.12063598632812,
+      "split_count": 224.0,
+      "importance_normalised": 0.05522664240210253
+    },
+    {
+      "feature": "elevation_m",
+      "importance_gain": 122.14602661132812,
+      "split_count": 102.0,
+      "importance_normalised": 0.03787160816683415
+    },
+    {
+      "feature": "humidity_percent",
+      "importance_gain": 103.40863037109375,
+      "split_count": 177.0,
+      "importance_normalised": 0.032062042778883526
+    },
+    {
+      "feature": "temperature_c",
+      "importance_gain": 96.95104217529297,
+      "split_count": 129.0,
+      "importance_normalised": 0.030059855260886448
+    },
+    {
+      "feature": "distance_to_river_km",
+      "importance_gain": 91.37870025634766,
+      "split_count": 52.0,
+      "importance_normalised": 0.028332140036899375
+    }
+  ],
+  "outputs": {
+    "model": "flood_xgboost_model.json",
+    "features": "flood_features.json",
+    "test_predictions": "flood_test_predictions.csv",
+    "feature_importance_plot": "flood_feature_importance.png"
+  }
+}

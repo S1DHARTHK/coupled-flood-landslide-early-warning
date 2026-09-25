@@ -484,6 +484,10 @@ layer(base);
   padding: 6px 10px;
   font-size: 12px;
   font-family: "JetBrains Mono", ui-monospace, monospace;
+  /* The native date-picker popup can't be styled directly; these make the
+     browser draw it dark with a phosphor accent instead of light/blue. */
+  color-scheme: dark;
+  accent-color: #39ff7a;
 }
 .crt-select:focus,
 .crt-input:focus {

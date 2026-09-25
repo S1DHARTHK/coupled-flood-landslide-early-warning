@@ -344,20 +344,26 @@ export function TermEmpty({
 }
 
 /**
- * Synthetic-data notice. This must stay visible: the dashboard must never read
- * as a live real-world Kerala warning.
+ * Data-status notice. This must stay visible: the dashboard must never read as
+ * a live operational Kerala warning. On real data it shows the backend's own
+ * `data_notice` (the caveat the served pipeline carries) when one is sent.
  */
 export function TermSyntheticBanner({
-  dataMode = "synthetic",
+  dataMode,
   sourceMode,
   fallbackReason,
+  notice,
 }: {
   dataMode?: string;
   sourceMode?: "live" | "fixture" | null;
   fallbackReason?: string;
+  notice?: string | null;
 }) {
+  // No response yet (loading or failed): claim nothing about the data.
+  const unknown = !dataMode;
   const isSynthetic = dataMode === "synthetic";
-  const accent = isSynthetic ? TERM.amber : TERM.phosphor;
+  const isReal = dataMode === "real";
+  const accent = isSynthetic || unknown ? TERM.amber : TERM.phosphor;
   return (
     <div
       className="rounded-[4px] px-4 py-3"
@@ -371,12 +377,24 @@ export function TermSyntheticBanner({
           className="crt-glow-amber text-[11px] font-bold uppercase tracking-wide"
           style={{ color: accent }}
         >
-          [!] {isSynthetic ? "synthetic development data" : "live data"}
+          [!]{" "}
+          {unknown
+            ? "no data loaded"
+            : isSynthetic
+              ? "synthetic development data"
+              : isReal
+                ? "real historical data"
+                : "live data"}
         </span>
         <p className="text-[11px] leading-relaxed text-[#8a8460]">
-          {isSynthetic
+          {unknown
+            ? "No response has been received for this view yet, so its data source cannot be stated. Nothing below is shown until one arrives."
+            : isSynthetic
             ? "All probabilities, warnings and metrics shown are simulated outputs used for development and testing. They are NOT real-world Kerala predictions and must not be acted upon."
-            : "Connected to live data source."}
+            : isReal
+              ? (notice ??
+                "Real XGBoost models and TCDL V1.0 on the real Kerala district-day dataset (2012–2024). Research outputs, not operational warnings; probabilities are not calibrated.")
+              : "Connected to live data source."}
         </p>
       </div>
       {sourceMode && (

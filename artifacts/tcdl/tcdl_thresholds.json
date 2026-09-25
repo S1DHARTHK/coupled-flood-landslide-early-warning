@@ -1,0 +1,56 @@
+{
+  "computed_on": "TRAINING split only (2012-01-30 .. 2021-02-14), V1.0 model probabilities",
+  "baseline_threshold": 0.5,
+  "thresholds": {
+    "alert_level": {
+      "signal": "coupled_prob_ma",
+      "training_quantile": 0.9,
+      "value": 0.688797
+    },
+    "watch_level": {
+      "signal": "coupled_prob_ma",
+      "training_quantile": 0.75,
+      "value": 0.585512
+    },
+    "rising_flood_level": {
+      "signal": "flood_prob_ma",
+      "training_quantile": 0.75,
+      "value": 0.516001
+    },
+    "rising_landslide_level": {
+      "signal": "landslide_prob_ma",
+      "training_quantile": 0.75,
+      "value": 0.131518
+    },
+    "joint_flood_level": {
+      "signal": "flood_prob_ma",
+      "training_quantile": 0.8,
+      "value": 0.536028
+    },
+    "joint_landslide_level": {
+      "signal": "landslide_prob_ma",
+      "training_quantile": 0.8,
+      "value": 0.161468
+    },
+    "flood_rate": {
+      "signal": "flood_prob_rate",
+      "training_quantile": 0.9,
+      "value": 0.048196
+    },
+    "landslide_rate": {
+      "signal": "landslide_prob_rate",
+      "training_quantile": 0.9,
+      "value": 0.067651
+    },
+    "rain_rate": {
+      "signal": "rainfall_rate",
+      "training_quantile": 0.95,
+      "value": 17.319551
+    },
+    "soil_rate": {
+      "signal": "soil_moisture_rate",
+      "training_quantile": 0.9,
+      "value": 0.023333
+    }
+  }
+}

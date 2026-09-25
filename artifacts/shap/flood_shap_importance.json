@@ -1,0 +1,138 @@
+{
+  "_warning": "REAL DATA -- explanations of the real Flood / Landslide XGBoost models on the real Kerala district-day Master Dataset. They describe model behaviour, not physical causation; the landslide model rests on very few positive cases.",
+  "_scope_note": "Explanation layer only. The model was not retrained, modified, or re-thresholded, and SHAP is not used by TCDL or by any prediction path.",
+  "model": "flood",
+  "model_label": "Flood XGBoost V1.0",
+  "model_version": "1.0",
+  "target": "flood",
+  "n_features": 12,
+  "feature_order": [
+    "rainfall_1d_mm",
+    "rainfall_3d_mm",
+    "rainfall_7d_mm",
+    "rainfall_14d_mm",
+    "rainfall_30d_mm",
+    "soil_moisture",
+    "temperature_c",
+    "humidity_percent",
+    "elevation_m",
+    "river_level_m",
+    "distance_to_river_km",
+    "drainage_density"
+  ],
+  "categorical_features": [],
+  "category_schema": {},
+  "explainer": "TreeSHAP via XGBoost pred_contribs (exact)",
+  "shap_space": "log-odds (margin)",
+  "base_value_mean": -0.000538,
+  "dataset": {
+    "split": "test (unseen)",
+    "date_range": [
+      "2023-01-24",
+      "2024-12-31"
+    ],
+    "n_rows": 9912,
+    "source": "real_master_dataset.csv"
+  },
+  "prediction_integrity": {
+    "n_rows": 9912,
+    "max_abs_probability_difference": 0.0,
+    "identical_within_tolerance": true,
+    "max_abs_difference_after_reload_from_disk": 0.0,
+    "reload_identical": true,
+    "shap_additivity_max_drift": 2.384185791015625e-07,
+    "explainer_type": "TreeExplainer",
+    "model_retrained": false
+  },
+  "global_importance": [
+    {
+      "feature": "rainfall_14d_mm",
+      "mean_abs_shap": 0.326214,
+      "share_of_total": 0.447017,
+      "mean_signed_shap": -0.157917,
+      "is_categorical": false
+    },
+    {
+      "feature": "river_level_m",
+      "mean_abs_shap": 0.11295,
+      "share_of_total": 0.154777,
+      "mean_signed_shap": -0.052988,
+      "is_categorical": false
+    },
+    {
+      "feature": "soil_moisture",
+      "mean_abs_shap": 0.06306,
+      "share_of_total": 0.086412,
+      "mean_signed_shap": -0.022662,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_7d_mm",
+      "mean_abs_shap": 0.055673,
+      "share_of_total": 0.07629,
+      "mean_signed_shap": -0.018964,
+      "is_categorical": false
+    },
+    {
+      "feature": "drainage_density",
+      "mean_abs_shap": 0.047279,
+      "share_of_total": 0.064787,
+      "mean_signed_shap": -0.015666,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_3d_mm",
+      "mean_abs_shap": 0.044377,
+      "share_of_total": 0.060811,
+      "mean_signed_shap": -0.003829,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_30d_mm",
+      "mean_abs_shap": 0.031729,
+      "share_of_total": 0.043479,
+      "mean_signed_shap": -0.016414,
+      "is_categorical": false
+    },
+    {
+      "feature": "rainfall_1d_mm",
+      "mean_abs_shap": 0.020931,
+      "share_of_total": 0.028682,
+      "mean_signed_shap": -0.003468,
+      "is_categorical": false
+    },
+    {
+      "feature": "humidity_percent",
+      "mean_abs_shap": 0.013182,
+      "share_of_total": 0.018063,
+      "mean_signed_shap": -0.000695,
+      "is_categorical": false
+    },
+    {
+      "feature": "temperature_c",
+      "mean_abs_shap": 0.008488,
+      "share_of_total": 0.011631,
+      "mean_signed_shap": -0.001784,
+      "is_categorical": false
+    },
+    {
+      "feature": "elevation_m",
+      "mean_abs_shap": 0.005473,
+      "share_of_total": 0.0075,
+      "mean_signed_shap": -0.00299,
+      "is_categorical": false
+    },
+    {
+      "feature": "distance_to_river_km",
+      "mean_abs_shap": 0.0004,
+      "share_of_total": 0.000549,
+      "mean_signed_shap": -0.000108,
+      "is_categorical": false
+    }
+  ],
+  "outputs": {
+    "bar_plot": "flood_shap_bar.png",
+    "summary_plot": "flood_shap_summary.png"
+  },
+  "interpretation_note": "Mean |SHAP| ranks how much each feature moved this model's output on average. It describes model behaviour, not physical causation."
+}

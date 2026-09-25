@@ -215,7 +215,19 @@ function Explanation({
             {e.prediction === 1 ? "above" : "below"} the{" "}
             {pct(e.decision_threshold, 0)} decision threshold
             {e.sample ? ` · ${e.sample.date}` : ""}
+            {e.sample?.district ? ` · ${e.sample.district}` : ""}
           </p>
+          {e.sample && (
+            <p className="mt-0.5 text-[10px] text-[#3d6b47]">
+              recorded {hazard}:{" "}
+              {e.sample.actual_label === 1
+                ? "yes"
+                : e.sample.actual_label === 0
+                  ? "not reported"
+                  : "—"}
+              {e.sample.split ? ` · ${e.sample.split} period` : ""}
+            </p>
+          )}
         </div>
         <div className="text-right">
           <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
@@ -275,8 +287,10 @@ function Explanation({
           >
             {e.additivity_check.passed ? "passed" : "failed"}
           </span>
-          ). They explain the current XGBoost model prediction; results shown here use
-          synthetic development data.
+          ). They explain the XGBoost model prediction shown above
+          {e.data_mode === "synthetic"
+            ? "; results shown here use synthetic development data."
+            : " on the real Kerala district-day data; they describe model behaviour, not physical causation."}
         </p>
       </div>
     </div>
@@ -333,8 +347,11 @@ function GlobalImportance({
 
 export default function TermShapSection({
   locationId,
+  date = null,
 }: {
   locationId: string | null;
+  /** The day the page is showing (null = latest). Used by --current-day. */
+  date?: string | null;
 }) {
   const [model, setModel] = useState<HazardModel>("flood");
   const [mode, setMode] = useState<ExplainMode>("current");
@@ -346,9 +363,9 @@ export default function TermShapSection({
   const explanation = useApi(
     () =>
       locationId
-        ? getShapExplanation(model, locationId, mode)
-        : Promise.reject(new Error("no monitoring point selected")),
-    [model, locationId, mode]
+        ? getShapExplanation(model, locationId, mode, date ?? undefined)
+        : Promise.reject(new Error("no location selected")),
+    [model, locationId, mode, date]
   );
   const global = useApi(() => getShapGlobal(model), [model]);
 
@@ -389,8 +406,10 @@ export default function TermShapSection({
 
           <span className="ml-auto text-[10px] text-[#3d6b47]">
             {mode === "peak"
-              ? "the location's highest-probability observed day"
-              : "the latest available observation"}
+              ? "the location's highest-probability day in the test period"
+              : date
+                ? `the day shown above (${date})`
+                : "the latest available observation"}
           </span>
         </div>
 
@@ -401,7 +420,7 @@ export default function TermShapSection({
               why this prediction?
             </p>
             {!locationId ? (
-              <TermEmpty message="select a monitoring point to explain its prediction" />
+              <TermEmpty message="select a location to explain its prediction" />
             ) : explanation.loading ? (
               <TermLoading label="computing shap attribution…" height={260} />
             ) : explanation.error ? (

@@ -3,7 +3,7 @@ TCDL service -- serving layer for the existing Temporal Coupled
 Decision Layer.
 
 Design rule for this file: it does NOT reimplement TCDL. It imports
-`ml/tcdl_v1.py` and calls that module's own `build_temporal_signals`
+`scripts/models/tcdl_v1.py` and calls that module's own `build_temporal_signals`
 and `apply_tcdl_rules`, so trend maths and rule conditions exist in
 exactly one place. If the ML layer changes, this service follows
 automatically.
@@ -11,6 +11,10 @@ automatically.
 Thresholds are read from `tcdl_results.json` (`resolved_thresholds`) --
 the values the ML run actually used. They are NOT recomputed here:
 recomputing on request data would silently change TCDL behaviour.
+
+The output files come from the model set the service is built for
+(config.REAL_MODEL_SET -> artifacts/tcdl/tcdl_*, config.SYNTHETIC_MODEL_SET ->
+synthetic/tcdl/tcdl_*), so the same code serves either pipeline.
 
 Two data paths are served:
   * PRECOMPUTED -- the pipeline's own outputs (tcdl_timeseries.csv,
@@ -26,7 +30,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import pandas as pd
 
@@ -43,7 +47,7 @@ class InsufficientHistory(ValueError):
 
 
 def _load_tcdl_module(path: Path):
-    """Import ml/tcdl_v1.py by file path, without modifying the ml/ package."""
+    """Import scripts/models/tcdl_v1.py by file path, without modifying it."""
     if not path.exists():
         raise TCDLUnavailable(f"TCDL implementation not found at {path}")
     spec = importlib.util.spec_from_file_location("tcdl_v1", path)
@@ -82,7 +86,8 @@ def classify_warning(triggered: list[str], is_warning: bool) -> str:
 
 
 class TCDLService:
-    def __init__(self, models: ModelService) -> None:
+    def __init__(self, models: ModelService,
+                 district_alias: Callable[[str], str] | None = None) -> None:
         self.errors: list[str] = []
         self.ready = False
         self.module = None
@@ -93,6 +98,10 @@ class TCDLService:
         self.warnings: pd.DataFrame | None = None
         self.lead_time: pd.DataFrame | None = None
         self.models = models
+        self.paths: dict[str, Any] = models.paths
+        self.name: str = models.name
+        # Canonicalises district spellings (e.g. "Pathanamthitta"); identifier only.
+        self._district_alias = district_alias
 
         try:
             self.module = _load_tcdl_module(config.TCDL_MODULE)
@@ -104,18 +113,19 @@ class TCDLService:
 
     # -----------------------------------------------------------------
     def _load_results(self) -> None:
-        if not config.TCDL_RESULTS.exists():
+        path = Path(self.paths["tcdl_results"])
+        if not path.exists():
             raise TCDLUnavailable(
-                f"TCDL results not found at {config.TCDL_RESULTS}. "
-                "Run ml/tcdl_v1.py before starting the API.")
-        with open(config.TCDL_RESULTS, encoding="utf-8") as f:
+                f"TCDL results not found at {path}. "
+                f"Run scripts/models/tcdl_v1.py --dataset {self.name} before starting the API.")
+        with open(path, encoding="utf-8") as f:
             self.results = json.load(f)
         params = self.results.get("parameters", {})
         self.thresholds = dict(params.get("resolved_thresholds", {}))
         if not self.thresholds:
             raise TCDLUnavailable(
                 "tcdl_results.json contains no resolved_thresholds; the API refuses "
-                "to invent thresholds. Re-run ml/tcdl_v1.py.")
+                "to invent thresholds. Re-run scripts/models/tcdl_v1.py.")
         self.rules = dict(self.results.get("rules", {}))
 
     def _load_outputs(self) -> None:
@@ -128,19 +138,29 @@ class TCDLService:
                 raise TCDLUnavailable(
                     f"TCDL output '{label}' at {path} is malformed: {exc}") from exc
 
-        ts = read(config.TCDL_TIMESERIES, "tcdl_timeseries")
+        ts = read(Path(self.paths["tcdl_timeseries"]), "tcdl_timeseries")
         ts["date"] = pd.to_datetime(ts["date"], errors="coerce")
         if ts["date"].isna().any():
             raise TCDLUnavailable("tcdl_timeseries.csv contains unparseable dates")
         ts["tcdl_triggered_rules"] = ts["tcdl_triggered_rules"].fillna("")
         self.timeseries = ts.sort_values(["date", "latitude", "longitude"]).reset_index(drop=True)
 
-        w = read(config.TCDL_WARNINGS, "tcdl_warnings")
+        w = read(Path(self.paths["tcdl_warnings"]), "tcdl_warnings")
         w["date"] = pd.to_datetime(w["date"], errors="coerce")
         w["tcdl_triggered_rules"] = w["tcdl_triggered_rules"].fillna("")
         self.warnings = w.sort_values(["date", "latitude", "longitude"]).reset_index(drop=True)
 
-        self.lead_time = read(config.TCDL_LEAD_TIME, "tcdl_lead_time")
+        self.lead_time = read(Path(self.paths["tcdl_lead_time"]), "tcdl_lead_time")
+        # district is an identifier carried by the real outputs; absent in synthetic.
+        self.has_district = "district" in ts.columns
+        self._district_to_location: dict[str, str] = {}
+        if self.has_district:
+            pairs = ts[["district", "location_id"]].drop_duplicates()
+            if pairs["district"].duplicated().any() or pairs["location_id"].duplicated().any():
+                raise TCDLUnavailable("tcdl_timeseries.csv maps a district to more than "
+                                      "one location (or vice versa)")
+            self._district_to_location = {str(d).lower(): loc for d, loc in
+                                          zip(pairs["district"], pairs["location_id"])}
 
     def _require_ready(self) -> None:
         if not self.ready:
@@ -227,14 +247,45 @@ class TCDLService:
     def locations(self) -> list[dict]:
         self._require_ready()
         assert self.timeseries is not None
-        g = (self.timeseries.groupby(["location_id", "latitude", "longitude"])
+        keys = ["location_id", "latitude", "longitude"] + (
+            ["district"] if self.has_district else [])
+        g = (self.timeseries.groupby(keys)
              .agg(n_records=("date", "size"),
                   first_date=("date", "min"), last_date=("date", "max"))
              .reset_index())
         return [{"location_id": r.location_id, "latitude": float(r.latitude),
-                 "longitude": float(r.longitude), "n_records": int(r.n_records),
+                 "longitude": float(r.longitude),
+                 "district": getattr(r, "district", None),
+                 "n_records": int(r.n_records),
                  "first_date": r.first_date.strftime("%Y-%m-%d"),
                  "last_date": r.last_date.strftime("%Y-%m-%d")} for r in g.itertuples()]
+
+    def resolve_location(self, location: str) -> str:
+        """
+        Accept a location_id or (real data) a district name / alias.
+
+        Only an identifier lookup: a district maps to the one location_id the
+        pipeline outputs already carry for it. Unknown values raise KeyError.
+        """
+        assert self.timeseries is not None
+        if location in set(self.timeseries["location_id"]):
+            return location
+        key = str(location).strip().lower()
+        if key in self._district_to_location:
+            return self._district_to_location[key]
+        if self._district_alias is not None and self._district_to_location:
+            try:
+                canonical = self._district_alias(location).lower()
+            except KeyError:
+                canonical = None
+            if canonical in self._district_to_location:
+                return self._district_to_location[canonical]
+        raise KeyError(f"Unknown location_id or district '{location}'")
+
+    def date_range(self) -> tuple[str, str]:
+        assert self.timeseries is not None
+        return (self.timeseries["date"].min().strftime("%Y-%m-%d"),
+                self.timeseries["date"].max().strftime("%Y-%m-%d"))
 
     def timeseries_slice(self, location_id: str | None = None,
                          split: str | None = None,
@@ -244,9 +295,7 @@ class TCDLService:
         assert self.timeseries is not None
         df = self.timeseries
         if location_id:
-            df = df[df["location_id"] == location_id]
-            if df.empty:
-                raise KeyError(f"Unknown location_id '{location_id}'")
+            df = df[df["location_id"] == self.resolve_location(location_id)]
         if split:
             df = df[df["split"] == split]
         if start:
@@ -290,6 +339,10 @@ class TCDLService:
                 "All observations in one request must belong to a single location; "
                 "trend signals are computed per location.")
         df["location_id"] = df["latitude"].astype(str) + "_" + df["longitude"].astype(str)
+        for f in set(self.models.flood_features) | set(self.models.landslide_features):
+            if f not in self.models.category_schema:
+                # null -> NaN, the missing value the models were trained with
+                df[f] = pd.to_numeric(df[f], errors="raise").astype("float64")
 
         # Frozen models -> probabilities (independent, no cross-feeding).
         df["flood_probability"] = self.models.predict_flood(records)

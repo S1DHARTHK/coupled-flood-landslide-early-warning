@@ -30,6 +30,7 @@ import {
   TermMetricTiles,
   TermSplitPeriodTable,
 } from "../../components/terminal/TermModelMetrics";
+import TermRealPrediction from "../../components/terminal/TermRealPrediction";
 import { useApi } from "../../hooks/useApi";
 import { getModelFeatures, getModelPerformance } from "../../services/api";
 
@@ -73,6 +74,8 @@ export default function ModelPerformancePage() {
   const model = perf.data?.models?.[active] ?? null;
   const importance = feats.data?.feature_importance?.[active];
   const contract = feats.data?.feature_contract?.[active];
+  // Wording follows whichever data mode the response reports.
+  const isReal = perf.data?.data_mode === "real";
 
   return (
     <>
@@ -129,6 +132,18 @@ export default function ModelPerformancePage() {
                 TCDL, which is why TCDL has no accuracy or ROC-AUC of its own.
               </p>
             </Panel>
+          </div>
+
+          {/* ------------------------------- real-model prediction */}
+          <div className="mt-6">
+            <Prompt
+              command="./predict --district <name> --date <YYYY-MM-DD>"
+              comment="real XGBoost models via FastAPI"
+              cwd="~/model-performance"
+            />
+            <div className="mt-3">
+              <TermRealPrediction />
+            </div>
           </div>
 
           {/* --------------------------------------------- model tabs */}
@@ -288,8 +303,9 @@ export default function ModelPerformancePage() {
                         </p>
                       )}
                       <p className="mt-2 text-[10px] leading-relaxed text-[#3d6b47]">
-                        On synthetic data these rankings describe the data generator,
-                        not real flood or landslide physics.
+                        {isReal
+                          ? "Static terrain features take one value per district (14 values), so their importance partly reflects district identity rather than physical process."
+                          : "On synthetic data these rankings describe the data generator, not real flood or landslide physics."}
                       </p>
                     </>
                   )}
@@ -303,7 +319,11 @@ export default function ModelPerformancePage() {
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
             <p className="text-[#5f8d68]">
               <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
-              &quot;synthetic development data · rankings describe the generator&quot;{" "}
+              &quot;
+              {isReal
+                ? "real district-day data · research metrics, not operational skill"
+                : "synthetic development data · rankings describe the generator"}
+              &quot;{" "}
               <span className="crt-caret align-middle" />
             </p>
             <p className="text-[#1c7a3c]">

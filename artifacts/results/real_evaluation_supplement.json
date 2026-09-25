@@ -1,0 +1,183 @@
+{
+  "_note": "Reliability supplement for the real-data models; no model was changed. Bootstrap: 2000 date-clustered resamples, seed 20260912. Reference rankings use training labels only.",
+  "flood": {
+    "train": {
+      "n_positive": 2760,
+      "n_positive_dates": 512,
+      "base_rate": 0.05967,
+      "recall_95ci": [
+        0.881,
+        0.904
+      ],
+      "precision_95ci": [
+        0.177,
+        0.19
+      ],
+      "reference_rankings": null
+    },
+    "validation": {
+      "n_positive": 242,
+      "n_positive_dates": 72,
+      "base_rate": 0.02441,
+      "recall_95ci": [
+        0.756,
+        0.854
+      ],
+      "precision_95ci": [
+        0.047,
+        0.062
+      ],
+      "roc_auc_95ci": [
+        0.783,
+        0.849
+      ],
+      "pr_auc_95ci": [
+        0.064,
+        0.158
+      ],
+      "n_boot_used": 2000,
+      "n_boot_without_positives": 0,
+      "reference_rankings": {
+        "district rate": {
+          "roc_auc": 0.544,
+          "pr_auc": 0.031
+        },
+        "calendar-month rate": {
+          "roc_auc": 0.445,
+          "pr_auc": 0.023
+        },
+        "district x month rate": {
+          "roc_auc": 0.486,
+          "pr_auc": 0.025
+        }
+      }
+    },
+    "test": {
+      "n_positive": 123,
+      "n_positive_dates": 37,
+      "base_rate": 0.01241,
+      "recall_95ci": [
+        0.828,
+        0.937
+      ],
+      "precision_95ci": [
+        0.031,
+        0.045
+      ],
+      "roc_auc_95ci": [
+        0.84,
+        0.898
+      ],
+      "pr_auc_95ci": [
+        0.04,
+        0.127
+      ],
+      "n_boot_used": 2000,
+      "n_boot_without_positives": 0,
+      "reference_rankings": {
+        "district rate": {
+          "roc_auc": 0.563,
+          "pr_auc": 0.017
+        },
+        "calendar-month rate": {
+          "roc_auc": 0.683,
+          "pr_auc": 0.022
+        },
+        "district x month rate": {
+          "roc_auc": 0.696,
+          "pr_auc": 0.023
+        }
+      }
+    }
+  },
+  "landslide": {
+    "train": {
+      "n_positive": 100,
+      "n_positive_dates": 51,
+      "base_rate": 0.00216,
+      "recall_95ci": [
+        0.963,
+        1.0
+      ],
+      "precision_95ci": [
+        0.038,
+        0.055
+      ],
+      "reference_rankings": null
+    },
+    "validation": {
+      "n_positive": 22,
+      "n_positive_dates": 15,
+      "base_rate": 0.00222,
+      "recall_95ci": [
+        0.347,
+        0.731
+      ],
+      "precision_95ci": [
+        0.01,
+        0.031
+      ],
+      "roc_auc_95ci": [
+        0.812,
+        0.952
+      ],
+      "pr_auc_95ci": [
+        0.01,
+        0.128
+      ],
+      "n_boot_used": 2000,
+      "n_boot_without_positives": 0,
+      "reference_rankings": {
+        "district rate": {
+          "roc_auc": 0.64,
+          "pr_auc": 0.004
+        },
+        "calendar-month rate": {
+          "roc_auc": 0.664,
+          "pr_auc": 0.004
+        },
+        "district x month rate": {
+          "roc_auc": 0.603,
+          "pr_auc": 0.004
+        }
+      }
+    },
+    "test": {
+      "n_positive": 10,
+      "n_positive_dates": 6,
+      "base_rate": 0.00101,
+      "recall_95ci": [
+        0.237,
+        0.763
+      ],
+      "precision_95ci": [
+        0.006,
+        0.03
+      ],
+      "roc_auc_95ci": [
+        0.747,
+        0.974
+      ],
+      "pr_auc_95ci": [
+        0.001,
+        0.044
+      ],
+      "n_boot_used": 1996,
+      "n_boot_without_positives": 4,
+      "reference_rankings": {
+        "district rate": {
+          "roc_auc": 0.797,
+          "pr_auc": 0.004
+        },
+        "calendar-month rate": {
+          "roc_auc": 0.726,
+          "pr_auc": 0.003
+        },
+        "district x month rate": {
+          "roc_auc": 0.606,
+          "pr_auc": 0.002
+        }
+      }
+    }
+  }
+}

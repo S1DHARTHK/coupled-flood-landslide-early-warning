@@ -22,18 +22,32 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 
 def build_observation_model(name: str, features: list[str],
                             category_schema: dict[str, list[str]],
-                            doc: str) -> type[BaseModel]:
+                            doc: str, nullable: set[str] | None = None,
+                            with_district: bool = False) -> type[BaseModel]:
     """Create an observation schema from a saved feature contract."""
+    nullable = nullable or set()
     fields: dict[str, Any] = {
         "date": (date_type, Field(..., description="Observation date (YYYY-MM-DD)")),
         "latitude": (float, Field(..., ge=-90, le=90)),
         "longitude": (float, Field(..., ge=-180, le=180)),
     }
+    if with_district:
+        fields["district"] = (str | None, Field(
+            None, description="Identifier only, never a model feature. If latitude/"
+                              "longitude are omitted, the district's representative "
+                              "point is used."))
+        fields["latitude"] = (float | None, Field(None, ge=-90, le=90))
+        fields["longitude"] = (float | None, Field(None, ge=-180, le=180))
     for feat in features:
         if feat in category_schema:
             cats = tuple(category_schema[feat])
             fields[feat] = (Literal[cats],  # type: ignore[valid-type]
                             Field(..., description=f"Categorical. Allowed: {list(cats)}"))
+        elif feat in nullable:
+            fields[feat] = (float | None, Field(
+                ..., description=f"Numeric feature '{feat}'. May be null: missing in the "
+                                 "model's training data, scored by XGBoost's learned "
+                                 "default branch (never imputed)."))
         else:
             fields[feat] = (float, Field(..., description=f"Numeric feature '{feat}'"))
     model = create_model(name, __doc__=doc, **fields)
@@ -55,6 +69,18 @@ class HealthResponse(BaseModel):
     tcdl_available: bool
     master_dataset_loaded: bool
     errors: list[str]
+    # Added with the real-model integration (additive; older clients ignore them).
+    prediction_model_set: str = Field("real", description=(
+        "Model set behind /predict/flood and /predict/landslide. data_mode above "
+        "describes the dashboard / TCDL / SHAP endpoints."))
+    synthetic_models_loaded: bool = Field(False, description=(
+        "Synthetic reference models (served by ?model_set=synthetic)"))
+    districts_loaded: bool = False
+    dashboard_model_set: str = Field("real", description=(
+        "Model set behind the dashboard, TCDL and SHAP endpoints"))
+    shap_available: bool = False
+    data_notice: str | None = Field(None, description=(
+        "The caveat every dashboard response of this data_mode carries"))
 
 
 class ModelStatusResponse(BaseModel):
@@ -67,6 +93,11 @@ class ModelStatusResponse(BaseModel):
     tcdl: dict[str, Any]
     artifacts: dict[str, Any]
     errors: list[str]
+    prediction_model_set: str = "real"
+    synthetic_models: dict[str, Any] = Field(default_factory=dict)
+    districts: dict[str, Any] = Field(default_factory=dict)
+    dashboard_model_set: str = "real"
+    shap: dict[str, Any] = Field(default_factory=dict)
 
 
 class HazardPrediction(BaseModel):
@@ -76,6 +107,9 @@ class HazardPrediction(BaseModel):
     probability: float = Field(..., description="P(hazard = 1) from the frozen model")
     prediction: int = Field(..., description="1 if probability >= decision threshold")
     warning_status: str = Field(..., description="Warning | No Warning")
+    district: str | None = Field(None, description="Identifier only; not a model feature")
+    missing_features: list[str] = Field(default_factory=list, description=(
+        "Features supplied as null, scored through XGBoost's learned default branch"))
 
 
 class HazardPredictionResponse(BaseModel):
@@ -89,6 +123,9 @@ class HazardPredictionResponse(BaseModel):
     n_observations: int
     predictions: list[HazardPrediction]
     calibration_note: str
+    model_set: str = Field("synthetic", description="real | synthetic")
+    model_artifact: str | None = Field(None, description="Booster file that scored the input")
+    model_note: str | None = None
 
 
 class TrendSignals(BaseModel):
@@ -144,6 +181,7 @@ class CoupledWarningResponse(BaseModel):
     baselines: dict[str, Any]
     tcdl_version: str
     notes: list[str]
+    data_notice: str | None = None
 
 
 class LeadTimeRecord(BaseModel):
@@ -152,17 +190,26 @@ class LeadTimeRecord(BaseModel):
     location_id: str
     latitude: float
     longitude: float
+    district: str | None = Field(None, description="Identifier only (real data)")
     event_time: str | None
     warning_time: str | None
     detected: int
     lead_time_hours: float | None = Field(...,
-        description="Earliest-warning variant, in hours")
+        description=("Earliest-warning variant. DATE-QUANTISED: whole days x 24 (the data has "
+                     "daily resolution; not hour-level timing). Name kept for compatibility; "
+                     "prefer lead_time_days."))
     lead_time_hours_contiguous: float | None = Field(...,
-        description="Unbroken alert run ending at onset, in hours")
+        description=("Unbroken alert run ending at onset. DATE-QUANTISED: whole days x 24; "
+                     "prefer lead_time_days_contiguous."))
+    lead_time_days: float | None = Field(None,
+        description="Earliest-warning variant in whole days (daily-resolution data)")
+    lead_time_days_contiguous: float | None = Field(None,
+        description="Unbroken alert run ending at onset, in whole days")
 
 
 class LeadTimeResponse(BaseModel):
     data_mode: str
+    data_notice: str | None = None
     lead_time_resolution: str
     lead_time_note: str
     lead_time_definition: dict[str, Any]

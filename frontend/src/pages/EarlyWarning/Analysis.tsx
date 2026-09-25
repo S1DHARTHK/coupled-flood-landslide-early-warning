@@ -1,11 +1,11 @@
 /**
  * Detailed analysis page, rendered as a CRT terminal session: the full
- * temporal signal set for a chosen monitoring point, the current model inputs,
- * the lead-time comparison across hazard scopes, TCDL rule activity, and the
- * SHAP explainability section.
+ * temporal signal set for a chosen location (a district on real data), the
+ * model inputs for the day shown, the lead-time comparison across hazard
+ * scopes, TCDL rule activity, and the SHAP explainability section.
  *
- * Location is selected by coordinates — no district is fabricated. Every
- * number is served by the backend; nothing is recomputed here.
+ * District names come from the backend and are never inferred from
+ * coordinates. Every number is served by the backend; nothing is recomputed.
  */
 
 import { useMemo, useState } from "react";
@@ -35,21 +35,26 @@ import {
   TermSoilMoistureChart,
 } from "../../components/terminal/TermCharts";
 import TermShapSection from "../../components/terminal/TermShap";
+import { TermAsOfPicker } from "../../components/terminal/TermHazard";
 import { num, pct } from "../../components/hazard/hazardUtils";
 import { useApi } from "../../hooks/useApi";
 import { emptyTrends, getCurrent, getEvaluation, getTrends } from "../../services/api";
 import type { HazardScope } from "../../services/api";
 
 export default function AnalysisPage() {
-  const current = useApi(() => getCurrent(), []);
+  // null = the latest day in the pipeline outputs.
+  const [asOf, setAsOf] = useState<string | null>(null);
+  const current = useApi(() => getCurrent(undefined, asOf ?? undefined), [asOf]);
   const locations = useMemo(() => current.data?.locations ?? [], [current.data]);
   const [locId, setLocId] = useState<string | null>(null);
   const [scope, setScope] = useState<HazardScope>("any_hazard");
+  // District wording unless the backend says it is serving synthetic points.
+  const isReal = current.data?.data_mode !== "synthetic";
 
   const activeId = locId ?? locations[0]?.location_id ?? null;
   const trends = useApi(
-    () => (activeId ? getTrends(activeId, 200) : emptyTrends()),
-    [activeId]
+    () => (activeId ? getTrends(activeId, 200, asOf ?? undefined) : emptyTrends()),
+    [activeId, asOf]
   );
   const evaluation = useApi(() => getEvaluation(scope), [scope]);
 
@@ -92,7 +97,8 @@ export default function AnalysisPage() {
         path="~/analysis"
         status={
           <span className="flex items-center gap-2 text-[13px] text-[#5f8d68]">
-            <span className="text-[#39ff7a]">{locations.length}</span> points
+            <span className="text-[#39ff7a]">{locations.length}</span>{" "}
+            {isReal ? "districts" : "points"}
           </span>
         }
       >
@@ -107,7 +113,8 @@ export default function AnalysisPage() {
           </h1>
           <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
             Every signal the two XGBoost models and the TCDL rules consume, for one
-            monitoring point at a time, plus the evaluation the pipeline produced.
+            {isReal ? " district" : " monitoring point"} at a time, plus the evaluation
+            the pipeline produced.
           </p>
 
           <div className="mt-5">
@@ -115,6 +122,15 @@ export default function AnalysisPage() {
               dataMode={current.data?.data_mode}
               sourceMode={current.sourceMode}
               fallbackReason={current.fallbackReason}
+              notice={current.data?.data_notice}
+            />
+          </div>
+
+          <div className="mt-4">
+            <TermAsOfPicker
+              value={asOf}
+              range={current.data?.available_date_range}
+              onChange={setAsOf}
             />
           </div>
 
@@ -122,7 +138,7 @@ export default function AnalysisPage() {
           <div className="mt-6">
             <Panel>
               <div className="flex flex-wrap items-end gap-4">
-                <Field label="monitoring point (latitude, longitude)">
+                <Field label={isReal ? "district" : "monitoring point (latitude, longitude)"}>
                   <select
                     className="crt-select"
                     value={activeId ?? ""}
@@ -130,9 +146,9 @@ export default function AnalysisPage() {
                   >
                     {locations.map((l) => (
                       <option key={l.location_id} value={l.location_id}>
-                        {l.environment.latitude.toFixed(3)},{" "}
-                        {l.environment.longitude.toFixed(3)}
-                        {l.district ? ` — ${l.district}` : ""}
+                        {l.district
+                          ? `${l.district} — ${l.environment.latitude.toFixed(3)}, ${l.environment.longitude.toFixed(3)}`
+                          : `${l.environment.latitude.toFixed(3)}, ${l.environment.longitude.toFixed(3)}`}
                       </option>
                     ))}
                   </select>
@@ -170,7 +186,11 @@ export default function AnalysisPage() {
           <section>
             <Prompt
               command="cat signals.log | tail -200"
-              comment={activeId ? `location ${activeId}` : "no location"}
+              comment={
+                selected
+                  ? `${selected.district ?? selected.location_id} · 200 days to ${current.data?.as_of ?? "latest"}`
+                  : "no location"
+              }
               cwd="~/analysis"
             />
             <SectionHead
@@ -249,7 +269,7 @@ export default function AnalysisPage() {
                     </div>
                     {env.unavailable_fields.length > 0 && (
                       <p className="mt-3 text-[10px] text-[#3d6b47]">
-                        unavailable in this dataset:{" "}
+                        no value for this day:{" "}
                         {env.unavailable_fields.join(", ")} — shown as “—” rather than
                         substituted.
                       </p>
@@ -390,18 +410,22 @@ export default function AnalysisPage() {
           <Rule />
 
           {/* -------------------------------------------------- shap */}
-          <TermShapSection locationId={activeId} />
+          <TermShapSection locationId={activeId} date={asOf} />
 
           {/* ------------------------------------------------ footer */}
           <div className="crt-rule mt-10" />
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
             <p className="text-[#5f8d68]">
               <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
-              &quot;synthetic development data · not a real-world Kerala
-              warning&quot; <span className="crt-caret align-middle" />
+              &quot;
+              {isReal
+                ? "real historical data · research output, not an operational warning"
+                : "synthetic development data · not a real-world Kerala warning"}
+              &quot; <span className="crt-caret align-middle" />
             </p>
             <p className="text-[#1c7a3c]">
-              scope: {scope} · point: {activeId ?? "—"}
+              scope: {scope} · {isReal ? "district" : "point"}:{" "}
+              {selected?.district ?? activeId ?? "—"}
             </p>
           </div>
         </div>

@@ -1,14 +1,13 @@
 /**
- * Compact live-weather widget for the dashboard header.
+ * Compact historical-weather widget for the dashboard header.
  *
- * IMPORTANT — this is the one panel on the dashboard showing REAL data. Every
- * other number on the page is a synthetic model output. This widget reads live
- * observed weather from the free Open-Meteo API (no key, no backend proxy) for
- * a fixed Kerala location, and is labelled as such so the two can never be
- * confused. It is display only: nothing here feeds the models or TCDL.
+ * Shows the observed weather for the day the dashboard is replaying (the
+ * "as of" date), read from Open-Meteo's free Historical Weather API (no key,
+ * no backend proxy) for a fixed Kerala location. It is display only: nothing
+ * here feeds the models or TCDL.
  *
- * V1 scope: one fixed location, today's conditions, and a collapsed 5-day
- * forecast. No location picker and no geolocation.
+ * V1 scope: one fixed location, one day (daily mean temperature, feels-like
+ * temperature and the day's WMO weather code). No location picker.
  */
 
 import { useEffect, useState } from "react";
@@ -21,70 +20,84 @@ const SITE = {
   longitude: 76.2673,
 };
 
-const ENDPOINT =
-  `https://api.open-meteo.com/v1/forecast` +
-  `?latitude=${SITE.latitude}&longitude=${SITE.longitude}` +
-  `&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m` +
-  `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum` +
-  `&timezone=Asia%2FKolkata&forecast_days=5`;
+/** Historical (reanalysis) daily values for one YYYY-MM-DD day. */
+function endpoint(date: string): string {
+  return (
+    `https://archive-api.open-meteo.com/v1/archive` +
+    `?latitude=${SITE.latitude}&longitude=${SITE.longitude}` +
+    `&start_date=${date}&end_date=${date}` +
+    `&daily=weather_code,temperature_2m_mean,apparent_temperature_mean` +
+    `&timezone=Asia%2FKolkata`
+  );
+}
 
-interface OpenMeteoResponse {
-  current: {
-    time: string;
-    temperature_2m: number;
-    relative_humidity_2m: number;
-    precipitation: number;
-    weather_code: number;
-    wind_speed_10m: number;
-  };
+interface OpenMeteoArchiveResponse {
   daily: {
     time: string[];
-    weather_code: number[];
-    temperature_2m_max: number[];
-    temperature_2m_min: number[];
-    precipitation_sum: number[];
+    weather_code: (number | null)[];
+    temperature_2m_mean: (number | null)[];
+    apparent_temperature_mean: (number | null)[];
   };
 }
 
-/** WMO weather codes, shortened to fit a compact console row. */
-function condition(code: number): string {
-  if (code === 0) return "clear";
-  if (code === 1) return "mainly clear";
-  if (code === 2) return "partly cloudy";
-  if (code === 3) return "overcast";
-  if (code === 45 || code === 48) return "fog";
-  if (code >= 51 && code <= 57) return "drizzle";
-  if (code >= 61 && code <= 67) return "rain";
-  if (code >= 71 && code <= 77) return "snow";
-  if (code >= 80 && code <= 82) return "rain showers";
-  if (code >= 85 && code <= 86) return "snow showers";
-  if (code === 95) return "thunderstorm";
-  if (code >= 96) return "thunderstorm, hail";
-  return `code ${code}`;
+/** WMO weather code -> icon and short label for a compact console row. */
+function condition(code: number): { icon: string; label: string } {
+  if (code === 0) return { icon: "☀️", label: "clear" };
+  if (code === 1) return { icon: "🌤️", label: "mainly clear" };
+  if (code === 2) return { icon: "⛅", label: "partly cloudy" };
+  if (code === 3) return { icon: "☁️", label: "overcast" };
+  if (code === 45 || code === 48) return { icon: "🌫️", label: "fog" };
+  if (code >= 51 && code <= 57) return { icon: "🌦️", label: "drizzle" };
+  if (code >= 61 && code <= 67) return { icon: "🌧️", label: "rain" };
+  if (code >= 71 && code <= 77) return { icon: "❄️", label: "snow" };
+  if (code >= 80 && code <= 82) return { icon: "🌧️", label: "rain showers" };
+  if (code >= 85 && code <= 86) return { icon: "🌨️", label: "snow showers" };
+  if (code === 95) return { icon: "⛈️", label: "thunderstorm" };
+  if (code >= 96) return { icon: "⛈️", label: "thunderstorm, hail" };
+  return { icon: "🌡️", label: `code ${code}` };
 }
 
-/** Three-letter weekday, or "today" for the first forecast row. */
-function dayLabel(iso: string, index: number): string {
-  if (index === 0) return "today";
-  return new Date(`${iso}T00:00:00`)
-    .toLocaleDateString("en-GB", { weekday: "short" })
-    .toLowerCase();
+/** YYYY-MM-DD -> DD/MM/YYYY for display. */
+function displayDate(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
 }
 
-export default function TermWeatherWidget() {
-  const [data, setData] = useState<OpenMeteoResponse | null>(null);
+interface DayWeather {
+  code: number;
+  temp: number;
+  feelsLike: number;
+}
+
+export default function TermWeatherWidget({
+  date,
+}: {
+  /** The replay ("as of") day shown by the dashboard, YYYY-MM-DD. */
+  date?: string | null;
+}) {
+  const [data, setData] = useState<DayWeather | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!date) return;
     let cancelled = false;
-    fetch(ENDPOINT)
+    setData(null);
+    setError(null);
+    fetch(endpoint(date))
       .then((r) => {
         if (!r.ok) throw new Error(`open-meteo ${r.status}`);
-        return r.json() as Promise<OpenMeteoResponse>;
+        return r.json() as Promise<OpenMeteoArchiveResponse>;
       })
       .then((json) => {
-        if (!cancelled) setData(json);
+        if (cancelled) return;
+        const code = json.daily?.weather_code?.[0];
+        const temp = json.daily?.temperature_2m_mean?.[0];
+        const feelsLike = json.daily?.apparent_temperature_mean?.[0];
+        if (code == null || temp == null || feelsLike == null) {
+          setError("no data for this date");
+          return;
+        }
+        setData({ code, temp, feelsLike });
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -94,104 +107,57 @@ export default function TermWeatherWidget() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [date]);
 
-  const c = data?.current;
+  const c = data ? condition(data.code) : null;
 
   return (
     <div className="crt-panel w-full shrink-0 p-3 sm:w-[272px]">
-      {/* Header: location + the live/real-data marker */}
+      {/* Header: location + the historical date shown */}
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
           {SITE.label}
         </p>
         <span className="text-[9px] uppercase tracking-wide text-[#1c7a3c]">
-          live · open-meteo
+          {date ? displayDate(date) : "—"}
         </span>
       </div>
 
-      {error ? (
+      {!date ? (
+        <p className="mt-3 text-[11px] text-[#2bbf5c]">
+          waiting for date… <span className="crt-caret align-middle" />
+        </p>
+      ) : error ? (
         <p className="mt-3 text-[11px] text-[#5f8d68]">
           <span style={{ color: TERM.amber }}>[!]</span> weather unavailable (
           {error})
         </p>
-      ) : !c ? (
+      ) : !data || !c ? (
         <p className="mt-3 text-[11px] text-[#2bbf5c]">
           fetching weather… <span className="crt-caret align-middle" />
         </p>
       ) : (
-        <>
-          {/* Today */}
-          <div className="mt-2 flex items-end justify-between gap-3">
+        <div className="mt-2 flex items-end justify-between gap-3">
+          <div className="flex items-end gap-2">
+            <span className="text-[26px] leading-none" role="img" aria-label={c.label}>
+              {c.icon}
+            </span>
             <p
               className="text-[28px] font-bold leading-none text-[#eafff1]"
               style={{ textShadow: "0 0 12px rgba(57,255,122,0.35)" }}
             >
-              {c.temperature_2m.toFixed(1)}
+              {data.temp.toFixed(1)}
               <span className="text-[15px] text-[#5f8d68]">°C</span>
             </p>
-            <p className="pb-1 text-right text-[11px] text-[#39ff7a] crt-glow-soft">
-              {condition(c.weather_code)}
+          </div>
+          <div className="pb-1 text-right text-[11px]">
+            <p className="text-[#39ff7a] crt-glow-soft">{c.label}</p>
+            <p className="text-[#5f8d68]">
+              feels like{" "}
+              <span style={{ color: TERM.ink }}>{data.feelsLike.toFixed(1)}°C</span>
             </p>
           </div>
-
-          <dl className="mt-3 space-y-1 text-[11px]">
-            {[
-              ["humidity", `${Math.round(c.relative_humidity_2m)}%`, false],
-              ["wind", `${c.wind_speed_10m.toFixed(0)} km/h`, false],
-              [
-                "precip",
-                `${c.precipitation.toFixed(1)} mm`,
-                c.precipitation > 0,
-              ],
-            ].map(([k, v, wet]) => (
-              <div key={String(k)} className="flex justify-between">
-                <dt className="text-[#5f8d68]">{k}</dt>
-                <dd style={{ color: wet ? TERM.amber : TERM.ink }}>{String(v)}</dd>
-              </div>
-            ))}
-          </dl>
-
-          {/* Forecast toggle */}
-          <button
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open}
-            className="crt-chip mt-3 w-full px-2 py-1 text-[11px]"
-          >
-            forecast {open ? "[-]" : "[+]"}
-          </button>
-
-          {open && (
-            <div className="mt-2 space-y-1 border-t border-[#0f2a12] pt-2">
-              {data.daily.time.map((day, i) => {
-                const wet = data.daily.precipitation_sum[i] > 0;
-                return (
-                  <div
-                    key={day}
-                    className="flex items-baseline justify-between gap-2 text-[11px]"
-                  >
-                    <span className="w-[42px] shrink-0 text-[#5f8d68]">
-                      {dayLabel(day, i)}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-[10px] text-[#3d6b47]">
-                      {condition(data.daily.weather_code[i])}
-                    </span>
-                    <span className="shrink-0 tabular-nums text-[#cfe9d5]">
-                      {Math.round(data.daily.temperature_2m_max[i])}°/
-                      {Math.round(data.daily.temperature_2m_min[i])}°
-                    </span>
-                    <span
-                      className="w-[46px] shrink-0 text-right tabular-nums text-[10px]"
-                      style={{ color: wet ? TERM.amber : "#1c3a22" }}
-                    >
-                      {data.daily.precipitation_sum[i].toFixed(1)}mm
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
   );

@@ -1,0 +1,156 @@
+{
+  "generated_at": "2026-09-25T23:46:39+05:30",
+  "tcdl_version": "1.0",
+  "layer_type": "rule-based, no training, no fitted parameters",
+  "dataset": {
+    "name": "Master Dataset V1.0",
+    "sha256": "832145448d3b96330f70a229b1fc94db16f3fdc8767ecc6aae4903c900f46c94",
+    "district_days": 66080,
+    "flood_positive_district_days": 3125,
+    "landslide_positive_district_days": 132
+  },
+  "models": {
+    "flood": {
+      "file": "models/real/flood_xgboost_model.json",
+      "sha256": "38755d9d7fc61292af6e86940773f0aa47f5b0e4f3a07b300239a6cf7125aced",
+      "features": [
+        "rainfall_1d_mm",
+        "rainfall_3d_mm",
+        "rainfall_7d_mm",
+        "rainfall_14d_mm",
+        "rainfall_30d_mm",
+        "soil_moisture",
+        "temperature_c",
+        "humidity_percent",
+        "elevation_m",
+        "river_level_m",
+        "distance_to_river_km",
+        "drainage_density"
+      ],
+      "scale_pos_weight": 15.759420289855072,
+      "best_iteration": 8
+    },
+    "landslide": {
+      "file": "models/real/landslide_xgboost_model.json",
+      "sha256": "c032d08b5dae22c445d5a096331f7a41003f301cb1d368028444046def608bd5",
+      "features": [
+        "rainfall_1d_mm",
+        "rainfall_3d_mm",
+        "rainfall_7d_mm",
+        "rainfall_14d_mm",
+        "rainfall_30d_mm",
+        "soil_moisture",
+        "temperature_c",
+        "humidity_percent",
+        "elevation_m",
+        "slope_degree",
+        "aspect_degree",
+        "curvature",
+        "land_cover",
+        "lithology"
+      ],
+      "scale_pos_weight": 461.56,
+      "best_iteration": 37
+    }
+  },
+  "rules": {
+    "R1_FLOOD_LEVEL": "flood_probability >= 0.5 (replicates the flood-only baseline)",
+    "R2_LANDSLIDE_LEVEL": "landslide_probability >= 0.5 (replicates the landslide-only baseline)",
+    "R3_SUSTAINED_JOINT": "smoothed coupled probability >= 0.6888 (train p90) for 2 consecutive days",
+    "R4_RISING_FLOOD": "smoothed flood probability >= 0.5160 (train p75) AND rising by >= 0.0482 (train p90) over 3 days",
+    "R5_RISING_LANDSLIDE": "smoothed landslide probability >= 0.1315 (train p75) AND rising by >= 0.0677 (train p90) over 3 days",
+    "R6_ENV_PRECURSOR": "smoothed coupled probability >= 0.5855 (train p75) AND rainfall rising by >= 17.32 mm/day (train p95) AND soil moisture rising by >= 0.0233 (train p90), rates over 3 days",
+    "R7_JOINT_MODERATE": "smoothed flood probability >= 0.5360 AND smoothed landslide probability >= 0.1615 simultaneously (both train p80) -- joint moderate risk where neither hazard alone reaches 0.5"
+  },
+  "thresholds": {
+    "alert_level": {
+      "signal": "coupled_prob_ma",
+      "training_quantile": 0.9,
+      "value": 0.688797
+    },
+    "watch_level": {
+      "signal": "coupled_prob_ma",
+      "training_quantile": 0.75,
+      "value": 0.585512
+    },
+    "rising_flood_level": {
+      "signal": "flood_prob_ma",
+      "training_quantile": 0.75,
+      "value": 0.516001
+    },
+    "rising_landslide_level": {
+      "signal": "landslide_prob_ma",
+      "training_quantile": 0.75,
+      "value": 0.131518
+    },
+    "joint_flood_level": {
+      "signal": "flood_prob_ma",
+      "training_quantile": 0.8,
+      "value": 0.536028
+    },
+    "joint_landslide_level": {
+      "signal": "landslide_prob_ma",
+      "training_quantile": 0.8,
+      "value": 0.161468
+    },
+    "flood_rate": {
+      "signal": "flood_prob_rate",
+      "training_quantile": 0.9,
+      "value": 0.048196
+    },
+    "landslide_rate": {
+      "signal": "landslide_prob_rate",
+      "training_quantile": 0.9,
+      "value": 0.067651
+    },
+    "rain_rate": {
+      "signal": "rainfall_rate",
+      "training_quantile": 0.95,
+      "value": 17.319551
+    },
+    "soil_rate": {
+      "signal": "soil_moisture_rate",
+      "training_quantile": 0.9,
+      "value": 0.023333
+    }
+  },
+  "baseline_threshold": 0.5,
+  "smooth_window_days": 3,
+  "rate_window_days": 3,
+  "sustain_days": 2,
+  "lead_time_lookback_days": 14,
+  "useful_horizon_days": 3,
+  "periods": {
+    "train": [
+      "2012-01-30",
+      "2021-02-14"
+    ],
+    "validation": [
+      "2021-02-15",
+      "2023-01-23"
+    ],
+    "test": [
+      "2023-01-24",
+      "2024-12-31"
+    ]
+  },
+  "event_source": {
+    "source": "derived_from_label_columns",
+    "method": "first day of each run of consecutive hazard days per location (onset = hazard==1 and previous day != 1)",
+    "resolution": "daily (00:00); the master dataset has no time-of-day component",
+    "n_events": 136,
+    "external_hook": "place a CSV at models/real/event_timestamps.csv with columns date,latitude,longitude,hazard_type,event_timestamp to use real hour-resolution timestamps instead"
+  },
+  "test_onsets": {
+    "any_hazard": 66,
+    "flood": 62,
+    "landslide": 8
+  },
+  "software": {
+    "python": "3.13.5",
+    "xgboost": "3.4.0",
+    "scikit-learn": "1.7.2",
+    "pandas": "2.3.1",
+    "numpy": "2.2.6"
+  }
+}

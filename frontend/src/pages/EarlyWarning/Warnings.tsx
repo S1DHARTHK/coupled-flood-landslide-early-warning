@@ -3,7 +3,10 @@
  * as a CRT terminal session.
  *
  * Records come from the backend; no warning is derived in the frontend. The
- * filters below only narrow what is displayed, they never change a decision.
+ * district, date and period filters are applied by the backend (the real
+ * decision log holds tens of thousands of district-days, far more than one
+ * page should load); the warning-type filter narrows the loaded rows. No
+ * filter ever changes a decision.
  */
 
 import { useMemo, useState } from "react";
@@ -22,7 +25,7 @@ import {
 import { TERM, warningColor } from "../../components/terminal/termColors";
 import { pct } from "../../components/hazard/hazardUtils";
 import { useApi } from "../../hooks/useApi";
-import { getWarnings } from "../../services/api";
+import { getLocations, getWarnings } from "../../services/api";
 import type { WarningType } from "../../types/hazard";
 
 const WARNING_TYPES: WarningType[] = [
@@ -31,30 +34,54 @@ const WARNING_TYPES: WarningType[] = [
   "Coupled Hazard Warning",
 ];
 
+/** Most recent rows loaded per query; the header says when more matched. */
+const PAGE_LIMIT = 2000;
+type SplitFilter = "all" | "train" | "validation" | "test";
+
 export default function WarningsPage() {
-  const warnings = useApi(() => getWarnings({ limit: 400 }), []);
   const [typeFilter, setTypeFilter] = useState<WarningType | "all">("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [split, setSplit] = useState<SplitFilter>("all");
+
+  const warnings = useApi(
+    () =>
+      getWarnings({
+        locationId: locationFilter === "all" ? undefined : locationFilter,
+        start: startDate || undefined,
+        end: endDate || undefined,
+        split: split === "all" ? undefined : split,
+        limit: PAGE_LIMIT,
+      }),
+    [locationFilter, startDate, endDate, split]
+  );
+  const locations = useApi(() => getLocations(), []);
 
   const records = useMemo(() => warnings.data?.records ?? [], [warnings.data]);
+  const nMatching = warnings.data?.n_matching ?? records.length;
+  const truncated = Boolean(warnings.data?.truncated);
+  const isReal = warnings.data?.data_mode === "real";
+  const hasDistrict = records.some((r) => r.district);
 
   const locationOptions = useMemo(
-    () => Array.from(new Set(records.map((r) => r.location_id))).sort(),
-    [records]
+    () =>
+      [...(locations.data?.locations ?? [])]
+        .map((l) => ({
+          id: l.location_id,
+          label: l.district ?? `${l.latitude.toFixed(3)}, ${l.longitude.toFixed(3)}`,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [locations.data]
   );
 
+  // Newest first: the backend returns the most recent rows in date order.
   const filtered = useMemo(
     () =>
-      records.filter((r) => {
-        if (typeFilter !== "all" && r.warning_type !== typeFilter) return false;
-        if (locationFilter !== "all" && r.location_id !== locationFilter) return false;
-        if (startDate && r.date < startDate) return false;
-        if (endDate && r.date > endDate) return false;
-        return true;
-      }),
-    [records, typeFilter, locationFilter, startDate, endDate]
+      records
+        .filter((r) => typeFilter === "all" || r.warning_type === typeFilter)
+        .reverse(),
+    [records, typeFilter]
   );
 
   const counts = useMemo(() => {
@@ -74,13 +101,14 @@ export default function WarningsPage() {
         path="~/warnings"
         status={
           <span className="flex items-center gap-2 text-[13px] text-[#5f8d68]">
-            <span className="text-[#39ff7a]">{records.length}</span> records loaded
+            <span className="text-[#39ff7a]">{nMatching}</span> matching ·{" "}
+            {records.length} loaded
           </span>
         }
       >
         <div className="px-4 py-8 sm:px-8 sm:py-10">
           <Prompt
-            command="./warnings --history --limit 400"
+            command={`./warnings --history --limit ${PAGE_LIMIT}`}
             comment="TCDL decision log"
             cwd="~/warnings"
           />
@@ -88,8 +116,9 @@ export default function WarningsPage() {
             Warning History
           </h1>
           <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
-            Every row is a TCDL decision produced by the ML pipeline. Timestamps are
-            daily — the dataset carries no time of day.
+            Every row is a TCDL decision produced by the ML pipeline
+            {isReal ? " on the real Kerala district-day data (2012–2024)" : ""}. Timestamps
+            are daily — the dataset carries no time of day.
           </p>
 
           <div className="mt-5">
@@ -97,6 +126,7 @@ export default function WarningsPage() {
               dataMode={warnings.data?.data_mode}
               sourceMode={warnings.sourceMode}
               fallbackReason={warnings.fallbackReason}
+              notice={warnings.data?.data_notice}
             />
           </div>
 
@@ -104,14 +134,20 @@ export default function WarningsPage() {
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="crt-panel crt-panel-hover p-4">
               <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
-                total_warning_records
+                matching_warning_days
               </p>
               <p
                 className="mt-2 text-[26px] font-bold leading-none text-[#eafff1]"
                 style={{ textShadow: "0 0 12px rgba(57,255,122,0.35)" }}
               >
-                {records.length}
+                {nMatching}
               </p>
+              {warnings.data?.n_location_days_in_range !== undefined && (
+                <p className="mt-2 text-[11px] text-[#5f8d68]">
+                  of {warnings.data.n_location_days_in_range}{" "}
+                  {isReal ? "district" : "location"}-days in range
+                </p>
+              )}
             </div>
             {WARNING_TYPES.map((t) => {
               const color = warningColor(t);
@@ -119,6 +155,7 @@ export default function WarningsPage() {
                 <div key={t} className="crt-panel crt-panel-hover p-4">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
                     {t.toLowerCase().replace(/ /g, "_")}
+                    {truncated ? " (loaded)" : ""}
                   </p>
                   <p
                     className="mt-2 text-[26px] font-bold leading-none"
@@ -135,13 +172,13 @@ export default function WarningsPage() {
           <div className="mt-8">
             <Prompt
               command="grep warnings.log"
-              comment={`${filtered.length} of ${records.length} rows`}
+              comment={`${filtered.length} of ${records.length} loaded rows`}
               cwd="~/warnings"
             />
             <SectionHead
               label="warning records"
               title="Filter the decision log"
-              desc="Filters narrow what is shown only — they never re-evaluate a warning."
+              desc="District, dates and period are queried from the backend; warning type narrows the loaded rows. No filter re-evaluates a warning."
             />
 
             <Panel>
@@ -163,18 +200,31 @@ export default function WarningsPage() {
                   </select>
                 </Field>
 
-                <Field label="location">
+                <Field label={isReal ? "district" : "location"}>
                   <select
                     className="crt-select"
                     value={locationFilter}
                     onChange={(e) => setLocationFilter(e.target.value)}
                   >
-                    <option value="all">all locations</option>
+                    <option value="all">{isReal ? "all districts" : "all locations"}</option>
                     {locationOptions.map((l) => (
-                      <option key={l} value={l}>
-                        {l.replace("_", ", ")}
+                      <option key={l.id} value={l.id}>
+                        {l.label}
                       </option>
                     ))}
+                  </select>
+                </Field>
+
+                <Field label="period">
+                  <select
+                    className="crt-select"
+                    value={split}
+                    onChange={(e) => setSplit(e.target.value as SplitFilter)}
+                  >
+                    <option value="all">all periods</option>
+                    <option value="train">train (seen by the models)</option>
+                    <option value="validation">validation</option>
+                    <option value="test">test (unseen, evaluated)</option>
                   </select>
                 </Field>
 
@@ -202,6 +252,7 @@ export default function WarningsPage() {
                     setLocationFilter("all");
                     setStartDate("");
                     setEndDate("");
+                    setSplit("all");
                   }}
                   className="crt-chip px-3 py-1.5 text-[12px]"
                 >
@@ -211,9 +262,17 @@ export default function WarningsPage() {
                 <span className="ml-auto text-[11px] text-[#3d6b47]">
                   showing{" "}
                   <span className="text-[#39ff7a]">{filtered.length}</span> of{" "}
-                  {records.length}
+                  {records.length} loaded
                 </span>
               </div>
+
+              {truncated && (
+                <p className="mt-3 text-[11px] leading-relaxed" style={{ color: TERM.amber }}>
+                  [!] {nMatching} warning days match; the most recent {records.length} are
+                  loaded. Pick a {isReal ? "district" : "location"} or narrow the dates to
+                  see older records.
+                </p>
+              )}
 
               <div className="mt-4">
                 {warnings.loading ? (
@@ -236,8 +295,7 @@ export default function WarningsPage() {
                         <tr>
                           {[
                             "date",
-                            "latitude",
-                            "longitude",
+                            ...(hasDistrict ? ["district"] : ["latitude", "longitude"]),
                             "warning_type",
                             "flood",
                             "landslide",
@@ -257,8 +315,14 @@ export default function WarningsPage() {
                           return (
                             <tr key={`${r.location_id}-${r.date}-${i}`}>
                               <td style={{ color: TERM.ink }}>{r.date}</td>
-                              <td>{r.latitude.toFixed(3)}</td>
-                              <td>{r.longitude.toFixed(3)}</td>
+                              {hasDistrict ? (
+                                <td>{r.district ?? "—"}</td>
+                              ) : (
+                                <>
+                                  <td>{r.latitude.toFixed(3)}</td>
+                                  <td>{r.longitude.toFixed(3)}</td>
+                                </>
+                              )}
                               <td>
                                 <span
                                   className="rounded-[3px] px-2 py-0.5 text-[10px]"
@@ -306,7 +370,8 @@ export default function WarningsPage() {
               </div>
 
               <p className="mt-3 text-[10px] leading-relaxed text-[#3d6b47]">
-                “actual” shows whether a hazard was recorded on that day at that point,
+                “actual” shows whether a hazard was recorded on that day
+                {isReal ? " in that district (0 = not reported, not proven absence)" : " at that point"},
                 for reference against the warning. Warning timestamps have daily
                 resolution — the dataset carries no time of day.
               </p>
@@ -318,11 +383,15 @@ export default function WarningsPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
             <p className="text-[#5f8d68]">
               <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
-              &quot;synthetic development data · not a real-world Kerala
-              warning&quot; <span className="crt-caret align-middle" />
+              &quot;
+              {isReal
+                ? "real historical data · research output, not an operational warning"
+                : "synthetic development data · not a real-world Kerala warning"}
+              &quot; <span className="crt-caret align-middle" />
             </p>
             <p className="text-[#1c7a3c]">
-              tcdl@v1.0 · records: {records.length} · filtered: {filtered.length}
+              tcdl@v1.0 · matching: {nMatching} · loaded: {records.length} · shown:{" "}
+              {filtered.length}
             </p>
           </div>
         </div>

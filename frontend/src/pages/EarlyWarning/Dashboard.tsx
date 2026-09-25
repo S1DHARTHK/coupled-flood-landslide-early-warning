@@ -8,6 +8,8 @@
  * card layout inside AppLayout, so it carries its own nav.
  *
  * Every value still originates from the backend; nothing is computed here.
+ * On real data each marker is one Kerala district (the representative point
+ * the dataset uses for it), and the "as of" picker replays any stored day.
  */
 
 import { useMemo, useState } from "react";
@@ -26,6 +28,7 @@ import {
 } from "../../components/terminal/TerminalUI";
 import { TERM } from "../../components/terminal/termColors";
 import {
+  TermAsOfPicker,
   TermMapLegend,
   TermPointSelector,
   TermSummaryCards,
@@ -45,9 +48,14 @@ import { toMapLocation } from "../../components/hazard/hazardUtils";
 import type { MapLocation } from "../../types/hazard";
 
 export default function EarlyWarningDashboard() {
-  const current = useApi(() => getCurrent(), []);
+  // null = the latest day in the pipeline outputs.
+  const [asOf, setAsOf] = useState<string | null>(null);
+  const current = useApi(() => getCurrent(undefined, asOf ?? undefined), [asOf]);
   const evaluation = useApi(() => getEvaluation("any_hazard"), []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // District wording unless the backend says it is serving synthetic points.
+  const isReal = current.data?.data_mode !== "synthetic";
+  const unit = isReal ? "district" : "monitoring point";
 
   // Memoised so the derived lists below don't recompute on every render.
   const locations = useMemo(() => current.data?.locations ?? [], [current.data]);
@@ -64,9 +72,10 @@ export default function EarlyWarningDashboard() {
   }, [selectedId, locations]);
 
   const selected = locations.find((l) => l.location_id === activeId) ?? null;
+  // Trends end on the day being shown, so the chart and the cards agree.
   const trends = useApi(
-    () => (activeId ? getTrends(activeId, 120) : emptyTrends()),
-    [activeId]
+    () => (activeId ? getTrends(activeId, 120, asOf ?? undefined) : emptyTrends()),
+    [activeId, asOf]
   );
 
   const mapLocations: MapLocation[] = useMemo(
@@ -119,9 +128,9 @@ export default function EarlyWarningDashboard() {
               </p>
             </div>
 
-            {/* Live observed weather. The only real-world data on this page —
+            {/* Historical observed weather for the day shown (as of) —
                 display only, it never reaches the models or TCDL. */}
-            <TermWeatherWidget />
+            <TermWeatherWidget date={current.data?.as_of} />
           </div>
 
           <div className="mt-5">
@@ -129,6 +138,16 @@ export default function EarlyWarningDashboard() {
               dataMode={current.data?.data_mode}
               sourceMode={current.sourceMode}
               fallbackReason={current.fallbackReason}
+              notice={current.data?.data_notice}
+            />
+          </div>
+
+          {/* ------------------------------------------ history replay */}
+          <div className="mt-4">
+            <TermAsOfPicker
+              value={asOf}
+              range={current.data?.available_date_range}
+              onChange={setAsOf}
             />
           </div>
 
@@ -156,13 +175,17 @@ export default function EarlyWarningDashboard() {
           {/* -------------------------------- map + warning decision */}
           <section>
             <Prompt
-              command="./map --render kerala --markers monitoring_points"
-              comment={`${mapLocations.length} points`}
+              command={`./map --render kerala --markers ${isReal ? "districts" : "monitoring_points"}`}
+              comment={`${mapLocations.length} ${unit}s`}
             />
             <SectionHead
-              label="live hazard map"
+              label="hazard map"
               title="Kerala Hazard Map // TCDL decision"
-              desc="District boundaries from OpenStreetMap. Markers are synthetic monitoring points positioned by their coordinates — click one to inspect its status."
+              desc={
+                isReal
+                  ? "District boundaries from OpenStreetMap. Each marker is one district, drawn at the representative point the real dataset uses for it — click one to inspect its status."
+                  : "District boundaries from OpenStreetMap. Markers are synthetic monitoring points positioned by their coordinates — click one to inspect its status."
+              }
             />
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
@@ -177,10 +200,7 @@ export default function EarlyWarningDashboard() {
                       height={420}
                     />
                   ) : mapLocations.length === 0 ? (
-                    <TermEmpty
-                      message="no monitoring points available"
-                      height={420}
-                    />
+                    <TermEmpty message={`no ${unit}s available`} height={420} />
                   ) : (
                     <>
                       <div className="crt-map">
@@ -193,10 +213,9 @@ export default function EarlyWarningDashboard() {
                         />
                       </div>
                       <p className="mt-3 text-[10px] leading-relaxed text-[#3d6b47]">
-                        The synthetic dataset carries no district field, so markers show
-                        coordinates only — no district is inferred from position. Because
-                        these coordinates are simulated rather than surveyed Kerala sites,
-                        some points fall outside the state boundary.
+                        {isReal
+                          ? "Data are district-level: one value per district per day, so a marker stands for the whole district, not a single site. River level is missing where no CWC gauge reading exists (no gauge in Alappuzha, Kottayam and Wayanad; none before mid-2015 in seven more) and is shown as “—”, never filled."
+                          : "The synthetic dataset carries no district field, so markers show coordinates only — no district is inferred from position. Because these coordinates are simulated rather than surveyed Kerala sites, some points fall outside the state boundary."}
                       </p>
                     </>
                   )}
@@ -219,8 +238,8 @@ export default function EarlyWarningDashboard() {
             {locations.length > 0 && (
               <div className="mt-5">
                 <Panel
-                  title="ls ~/monitoring_points"
-                  desc="Select a point to drive the warning panel, the trends below and the SHAP explanation."
+                  title={isReal ? "ls ~/districts" : "ls ~/monitoring_points"}
+                  desc={`Select a ${unit} to drive the warning panel, the trends below and the SHAP explanation.`}
                 >
                   <TermPointSelector
                     locations={locations}
@@ -238,18 +257,22 @@ export default function EarlyWarningDashboard() {
           <section>
             <Prompt
               command="cat trends.log | tail -120"
-              comment={activeId ? `location ${activeId}` : "no location selected"}
+              comment={
+                selected
+                  ? `${selected.district ?? selected.location_id} · 120 days to ${current.data?.as_of ?? "latest"}`
+                  : "no location selected"
+              }
             />
             <SectionHead
               label="temporal signals"
               title="What the models and TCDL are watching"
-              desc="Hazard probabilities and the rainfall signal over the evaluation period, exactly as served by /trends."
+              desc="Hazard probabilities and the rainfall signal for the 120 days up to the day shown, exactly as served by /trends."
             />
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <Panel
                 title="hazard probability trend"
-                desc="Flood, landslide and coupled probability over the evaluation period"
+                desc="Flood, landslide and coupled probability up to the day shown"
               >
                 {trends.loading ? (
                   <TermLoading label="loading trends…" height={280} />
@@ -336,19 +359,22 @@ export default function EarlyWarningDashboard() {
           <Rule />
 
           {/* -------------------------------------------------- shap */}
-          <TermShapSection locationId={activeId} />
+          <TermShapSection locationId={activeId} date={asOf} />
 
           {/* ------------------------------------------------ footer */}
           <div className="crt-rule mt-10" />
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
             <p className="text-[#5f8d68]">
               <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
-              &quot;synthetic development data · not a real-world Kerala
-              warning&quot; <span className="crt-caret align-middle" />
+              &quot;
+              {isReal
+                ? "real historical data · research output, not an operational warning"
+                : "synthetic development data · not a real-world Kerala warning"}
+              &quot; <span className="crt-caret align-middle" />
             </p>
             <p className="text-[#1c7a3c]">
-              models: flood_xgboost@v1.0 landslide_xgboost@v1.0 · tcdl@v1.0 ·
-              points: {locations.length}
+              models: flood_xgboost@v1.0 landslide_xgboost@v1.0 · tcdl@v1.0 ·{" "}
+              {unit}s: {locations.length}
             </p>
           </div>
         </div>

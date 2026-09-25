@@ -10,7 +10,7 @@
 import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import type { EvaluationResponse, TrendPoint } from "../../types/hazard";
-import { SYSTEM_LABELS, hours, pct } from "../hazard/hazardUtils";
+import { SYSTEM_LABELS, leadDays, pct } from "../hazard/hazardUtils";
 import { TERM } from "./termColors";
 
 const MONO = '"JetBrains Mono", ui-monospace, monospace';
@@ -273,7 +273,12 @@ export function TermEvaluationNotes({
   );
 }
 
-/** Lead-time comparison across the evaluated warning systems. */
+/**
+ * Lead-time comparison across the evaluated warning systems.
+ *
+ * Shown in DAYS: the API's *_hours fields are date-quantised (whole days x 24)
+ * because the data has daily resolution, so hours would imply false precision.
+ */
 export function TermLeadTimeChart({
   evaluation,
   height = 320,
@@ -298,7 +303,7 @@ export function TermLeadTimeChart({
     colors: [TERM.phosphor, TERM.faint],
     dataLabels: {
       enabled: true,
-      formatter: (v: number) => (v ? `${v.toFixed(0)}h` : ""),
+      formatter: (v: number) => (v ? `${v.toFixed(1)}d` : ""),
       style: { fontSize: "10px", fontWeight: 600, fontFamily: MONO, colors: ["#eafff1"] },
     },
     legend: {
@@ -317,7 +322,7 @@ export function TermLeadTimeChart({
     },
     yaxis: {
       title: {
-        text: "lead time (hours)",
+        text: "mean lead time (days, date-based)",
         style: { fontSize: "10px", color: AXIS, fontWeight: 500, fontFamily: MONO },
       },
       labels: { style: { fontSize: "10px", colors: AXIS, fontFamily: MONO } },
@@ -326,7 +331,7 @@ export function TermLeadTimeChart({
     tooltip: {
       theme: "dark",
       style: { fontFamily: MONO, fontSize: "11px" },
-      y: { formatter: (v: number) => `${v?.toFixed(1)} hours` },
+      y: { formatter: (v: number) => `${v?.toFixed(1)} days (daily-resolution data)` },
     },
   };
 
@@ -337,13 +342,13 @@ export function TermLeadTimeChart({
         {
           name: "contiguous lead time",
           data: keys.map(
-            (k) => evaluation.systems[k].mean_lead_time_hours_contiguous ?? 0
+            (k) => (evaluation.systems[k].mean_lead_time_hours_contiguous ?? 0) / 24
           ),
         },
         {
           name: "earliest-warning lead time",
           data: keys.map(
-            (k) => evaluation.systems[k].mean_lead_time_hours_earliest ?? 0
+            (k) => (evaluation.systems[k].mean_lead_time_hours_earliest ?? 0) / 24
           ),
         },
       ]}
@@ -408,9 +413,9 @@ export function TermEvaluationTable({
                 <td>{s.n_detected}</td>
                 <td style={{ color: TERM.ink }}>{pct(s.detection_rate, 1)}</td>
                 <td style={{ color: TERM.ink }}>
-                  {hours(s.mean_lead_time_hours_contiguous)}
+                  {leadDays(s.mean_lead_time_hours_contiguous)}
                 </td>
-                <td>{hours(s.mean_lead_time_hours_earliest)}</td>
+                <td>{leadDays(s.mean_lead_time_hours_earliest)}</td>
                 <td>{pct(s.time_in_warning_rate, 1)}</td>
                 <td>{pct(s.false_alarm_day_rate, 1)}</td>
               </tr>
@@ -418,6 +423,10 @@ export function TermEvaluationTable({
           })}
         </tbody>
       </table>
+      <p className="mt-2 text-[10px] leading-relaxed text-[#3d6b47]">
+        Lead times are mean days per detected onset and are date-based: the data has
+        daily resolution, so they are not hour-level timings.
+      </p>
     </div>
   );
 }

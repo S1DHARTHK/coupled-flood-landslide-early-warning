@@ -17,7 +17,7 @@ import {
   pct,
   ruleIsBaseline,
 } from "../hazard/hazardUtils";
-import { Meter, TermEmpty } from "./TerminalUI";
+import { ChipButton, Field, Meter, TermEmpty } from "./TerminalUI";
 import { TERM, levelColor, warningColor } from "./termColors";
 
 /** Rate-of-change arrow in the terminal palette (rising reads as amber). */
@@ -115,7 +115,9 @@ export function TermSummaryCards({
         label="tcdl_status"
         value={(location?.tcdl.warning_status ?? "—").toUpperCase()}
         color={wcolor}
-        sub={`${activeWarnings} of ${totalLocations} monitoring points under warning`}
+        sub={`${activeWarnings} of ${totalLocations} ${
+          location?.district ? "districts" : "monitoring points"
+        } under warning`}
       />
       <Card
         label="warning_type"
@@ -179,7 +181,7 @@ export function TermWarningPanel({
   if (!location) {
     return (
       <div className="crt-panel h-full p-4">
-        <TermEmpty message="select a monitoring point to view its warning status" />
+        <TermEmpty message="select a district to view its warning status" />
       </div>
     );
   }
@@ -209,8 +211,10 @@ export function TermWarningPanel({
               {tcdl.warning_type.toUpperCase()}
             </p>
             <p className="mt-1 text-[11px] text-[#5f8d68]">
+              {location.district ? (
+                <span className="text-[#cfe9d5]">{location.district} · </span>
+              ) : null}
               {formatCoord(environment.latitude, environment.longitude)}
-              {location.district ? ` · district: ${location.district}` : ""}
             </p>
           </div>
           <span
@@ -225,6 +229,12 @@ export function TermWarningPanel({
             ? `warning timestamp: ${tcdl.warning_timestamp} (daily resolution)`
             : `no active warning · as of ${environment.date}`}
         </p>
+        {location.recorded_labels && (
+          <RecordedEvents
+            labels={location.recorded_labels}
+            split={location.split}
+          />
+        )}
       </div>
 
       <div className="space-y-4 p-4">
@@ -346,8 +356,8 @@ export function TermPointSelector({
             onClick={() => onSelect(l.location_id)}
             className={`crt-chip px-2.5 py-1 text-[11px] ${on ? "crt-chip-on" : ""}`}
           >
-            {l.environment.latitude.toFixed(3)},{" "}
-            {l.environment.longitude.toFixed(3)}
+            {l.district ??
+              `${l.environment.latitude.toFixed(3)}, ${l.environment.longitude.toFixed(3)}`}
             {warn && (
               <span
                 className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
@@ -357,6 +367,89 @@ export function TermPointSelector({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * What the dataset recorded for this district-day, shown beside the decision
+ * so a replayed day can be checked against reality. 0 means "not reported",
+ * not proven absence. `split` says whether the models saw the day in training.
+ */
+function RecordedEvents({
+  labels,
+  split,
+}: {
+  labels: { flood?: number; landslide?: number };
+  split?: string;
+}) {
+  const hits = (["flood", "landslide"] as const).filter((h) => labels[h] === 1);
+  return (
+    <p className="mt-1 text-[11px] text-[#3d6b47]">
+      recorded event:{" "}
+      <span style={{ color: hits.length ? TERM.red : TERM.faint }}>
+        {hits.length ? hits.join(" + ") : "none reported"}
+      </span>
+      {split ? (
+        <span title="train = seen by the models during training; test = unseen">
+          {" "}
+          · {split} period
+        </span>
+      ) : null}
+    </p>
+  );
+}
+
+/**
+ * Notable days in the real dataset, offered as replay shortcuts. Each one has
+ * recorded events in dataset/real_master_dataset.csv; a shortcut outside the served
+ * date range is hidden rather than offered.
+ */
+const REPLAY_PRESETS: { date: string; label: string }[] = [
+  { date: "2018-08-16", label: "2018 Kerala floods" },
+  { date: "2019-08-08", label: "2019 Kavalappara / Puthumala" },
+  { date: "2021-10-16", label: "2021 Kokkayar / Koottickal" },
+  { date: "2024-07-30", label: "2024 Wayanad landslide" },
+];
+
+/**
+ * History replay control. Picks the day the page shows; the backend serves
+ * the pipeline outputs stored for that day. `value = null` means "latest".
+ */
+export function TermAsOfPicker({
+  value,
+  range,
+  onChange,
+}: {
+  value: string | null;
+  range?: [string, string];
+  onChange: (date: string | null) => void;
+}) {
+  const presets = REPLAY_PRESETS.filter(
+    (p) => !range || (p.date >= range[0] && p.date <= range[1])
+  );
+  return (
+    <div className="flex flex-wrap items-end gap-3">
+      <Field label="as of (replay a day)">
+        <input
+          type="date"
+          className="crt-input"
+          value={value ?? range?.[1] ?? ""}
+          min={range?.[0]}
+          max={range?.[1]}
+          onChange={(e) => onChange(e.target.value || null)}
+        />
+      </Field>
+      <div className="flex flex-wrap gap-2 pb-0.5">
+        <ChipButton on={value === null} onClick={() => onChange(null)}>
+          latest{range ? ` (${range[1]})` : ""}
+        </ChipButton>
+        {presets.map((p) => (
+          <ChipButton key={p.date} on={value === p.date} onClick={() => onChange(p.date)}>
+            {p.label}
+          </ChipButton>
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,16 @@
+scope,system,n_events,n_detected,detection_rate,lead_earliest_days_mean,lead_earliest_days_median,lead_earliest_days_min,lead_earliest_days_max,lead_contiguous_days_mean,lead_contiguous_days_median,lead_contiguous_days_min,lead_contiguous_days_max,n_zero_lead_nowcast,n_detected_with_lead_ge_1_day,warning_days,time_in_warning_rate,false_alarm_days_3d,false_alarm_rate_3d,useful_warning_days_3d,false_alarm_rate_14d
+any_hazard,flood_only,66,65,0.9848,11.88,14.0,0.0,14.0,16.18,8.0,0.0,105.0,1,64,2938,0.2964,2736,0.9312,202,0.7954
+any_hazard,landslide_only,66,24,0.3636,10.46,11.5,1.0,14.0,0.42,0.0,0.0,3.0,0,24,380,0.0383,348,0.9158,32,0.7605
+any_hazard,tcdl_coupled,66,65,0.9848,12.08,14.0,1.0,14.0,16.62,9.0,0.0,105.0,0,65,3183,0.3211,2970,0.9331,213,0.8005
+any_hazard,tcdl_coupling_rules_only,66,61,0.9242,10.69,14.0,0.0,14.0,3.49,0.0,0.0,24.0,1,60,1873,0.189,1750,0.9343,123,0.7854
+any_hazard,always_warn_control,66,66,1.0,14.0,14.0,14.0,14.0,418.3,481.0,155.0,640.0,0,66,9912,1.0,9656,0.9742,256,0.914
+flood,flood_only,62,61,0.9839,11.8,14.0,0.0,14.0,16.7,8.0,0.0,105.0,1,60,2938,0.2964,2744,0.934,194,0.8063
+flood,landslide_only,62,21,0.3387,10.19,11.0,1.0,14.0,0.43,0.0,0.0,3.0,0,21,380,0.0383,353,0.9289,27,0.8079
+flood,tcdl_coupled,62,61,0.9839,11.95,14.0,1.0,14.0,17.11,9.0,0.0,105.0,0,61,3183,0.3211,2978,0.9356,205,0.8128
+flood,tcdl_coupling_rules_only,62,57,0.9194,10.53,14.0,0.0,14.0,3.12,0.0,0.0,24.0,1,56,1873,0.189,1758,0.9386,115,0.8046
+flood,always_warn_control,62,62,1.0,14.0,14.0,14.0,14.0,413.68,481.0,155.0,640.0,0,62,9912,1.0,9672,0.9758,240,0.9195
+landslide,flood_only,8,8,1.0,13.12,14.0,10.0,14.0,11.5,9.5,0.0,37.0,0,8,2938,0.2964,2917,0.9929,21,0.9724
+landslide,landslide_only,8,7,0.875,11.43,14.0,1.0,14.0,0.29,0.0,0.0,1.0,0,7,380,0.0383,368,0.9684,12,0.8868
+landslide,tcdl_coupled,8,8,1.0,13.62,14.0,11.0,14.0,13.38,14.0,0.0,37.0,0,8,3183,0.3211,3159,0.9925,24,0.9702
+landslide,tcdl_coupling_rules_only,8,8,1.0,13.0,14.0,10.0,14.0,9.38,10.0,0.0,20.0,0,8,1873,0.189,1850,0.9877,23,0.9519
+landslide,always_warn_control,8,8,1.0,14.0,14.0,14.0,14.0,486.0,552.0,273.0,583.0,0,8,9912,1.0,9880,0.9968,32,0.9882

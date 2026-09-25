@@ -9,9 +9,10 @@
  * DISTRICT HANDLING
  * -----------------
  * District names shown on the map belong to the BOUNDARY POLYGONS (cartography
- * from OSM). They are never attached to a monitoring point. A marker displays
- * a district only if the backend supplied `district` for that location, which
- * the current synthetic dataset does not. Nothing is inferred from coordinates.
+ * from OSM). A marker displays a district only if the backend supplied
+ * `district` for that location -- the real pipeline does (one representative
+ * point per district), the synthetic one does not. Nothing is inferred from
+ * coordinates.
  *
  * Usage:  <KeralaMap locations={locations} />
  */
@@ -155,11 +156,10 @@ export default function KeralaMap({
               <Popup minWidth={248}>
                 <div className="space-y-2 text-[13px] leading-tight">
                   <div>
-                    <p className="font-semibold text-gray-800">Monitoring Point</p>
                     {/* District appears ONLY if the backend supplied it. */}
-                    {loc.district ? (
-                      <p className="text-gray-600">District: {loc.district}</p>
-                    ) : null}
+                    <p className="font-semibold text-gray-800">
+                      {loc.district ? `${loc.district} district` : "Monitoring Point"}
+                    </p>
                     <p className="text-gray-600">
                       Latitude: {loc.latitude.toFixed(3)}
                     </p>

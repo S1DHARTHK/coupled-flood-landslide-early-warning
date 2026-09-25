@@ -1,0 +1,13 @@
+feature,kind,spearman_value_vs_shap,mean_shap_low_quartile,mean_shap_high_quartile,detail
+rainfall_14d_mm,numeric,0.947,-0.4589,0.267,distinct values in population: 8193
+river_level_m,numeric,-0.006,-0.1459,0.1344,"distinct values in population: 4422; missing rows: 2148, mean SHAP when missing -0.0191"
+soil_moisture,numeric,-0.85,0.0552,-0.0918,distinct values in population: 74
+rainfall_7d_mm,numeric,0.921,-0.0841,0.0565,distinct values in population: 7818
+drainage_density,numeric,-0.792,0.0444,-0.0593,distinct values in population: 14
+rainfall_3d_mm,numeric,0.601,-0.0845,0.0184,distinct values in population: 7387
+rainfall_30d_mm,numeric,0.065,-0.0169,0.0171,distinct values in population: 8375
+rainfall_1d_mm,numeric,0.804,-0.0294,0.0159,distinct values in population: 6256
+humidity_percent,numeric,-0.058,0.0041,0.012,distinct values in population: 3372
+temperature_c,numeric,0.716,-0.0085,0.0096,distinct values in population: 1066
+elevation_m,numeric,0.69,-0.0121,0.0029,distinct values in population: 14
+distance_to_river_km,numeric,-0.505,0.0004,-0.0004,distinct values in population: 14

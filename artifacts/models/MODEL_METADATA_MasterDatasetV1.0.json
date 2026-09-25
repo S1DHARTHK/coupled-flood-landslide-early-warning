@@ -1,0 +1,122 @@
+{
+  "dataset": {
+    "name": "Master Dataset V1.0 (frozen)",
+    "path": "real_master_dataset.csv",
+    "sha256": "832145448d3b96330f70a229b1fc94db16f3fdc8767ecc6aae4903c900f46c94",
+    "rows": 66080,
+    "columns": 23,
+    "flood_positives": 3125,
+    "landslide_positives": 132
+  },
+  "split": {
+    "method": "chronological (no shuffling)",
+    "train": [
+      "2012-01-30",
+      "2021-02-14"
+    ],
+    "validation": [
+      "2021-02-15",
+      "2023-01-23"
+    ],
+    "test": [
+      "2023-01-24",
+      "2024-12-31"
+    ]
+  },
+  "decision_threshold": 0.5,
+  "random_state": 42,
+  "software": {
+    "python": "3.13.5",
+    "xgboost": "3.4.0",
+    "scikit-learn": "1.7.2",
+    "pandas": "2.3.1",
+    "numpy": "2.2.6"
+  },
+  "trained_at": "2026-09-25T22:43:26+05:30",
+  "models": {
+    "flood": {
+      "artifact": "models/real/flood_xgboost_model.json",
+      "features": [
+        "rainfall_1d_mm",
+        "rainfall_3d_mm",
+        "rainfall_7d_mm",
+        "rainfall_14d_mm",
+        "rainfall_30d_mm",
+        "soil_moisture",
+        "temperature_c",
+        "humidity_percent",
+        "elevation_m",
+        "river_level_m",
+        "distance_to_river_km",
+        "drainage_density"
+      ],
+      "target": "flood",
+      "train_positives": 2760,
+      "train_negatives": 43496,
+      "scale_pos_weight": 15.759420289855072,
+      "best_iteration": 8,
+      "xgb_params": {
+        "objective": "binary:logistic",
+        "colsample_bytree": 0.85,
+        "early_stopping_rounds": 50,
+        "enable_categorical": true,
+        "eval_metric": "aucpr",
+        "learning_rate": 0.05,
+        "max_depth": 5,
+        "min_child_weight": 2,
+        "n_estimators": 500,
+        "n_jobs": 4,
+        "random_state": 42,
+        "reg_lambda": 1.0,
+        "scale_pos_weight": 15.759420289855072,
+        "subsample": 0.85,
+        "tree_method": "hist"
+      },
+      "early_stopping": "50 rounds, validation aucpr"
+    },
+    "landslide": {
+      "artifact": "models/real/landslide_xgboost_model.json",
+      "features": [
+        "rainfall_1d_mm",
+        "rainfall_3d_mm",
+        "rainfall_7d_mm",
+        "rainfall_14d_mm",
+        "rainfall_30d_mm",
+        "soil_moisture",
+        "temperature_c",
+        "humidity_percent",
+        "elevation_m",
+        "slope_degree",
+        "aspect_degree",
+        "curvature",
+        "land_cover",
+        "lithology"
+      ],
+      "target": "landslide",
+      "train_positives": 100,
+      "train_negatives": 46156,
+      "scale_pos_weight": 461.56,
+      "best_iteration": 37,
+      "xgb_params": {
+        "objective": "binary:logistic",
+        "colsample_bytree": 0.85,
+        "early_stopping_rounds": 50,
+        "enable_categorical": true,
+        "eval_metric": "aucpr",
+        "learning_rate": 0.05,
+        "max_cat_to_onehot": 1,
+        "max_depth": 5,
+        "min_child_weight": 2,
+        "n_estimators": 500,
+        "n_jobs": 4,
+        "random_state": 42,
+        "reg_lambda": 1.0,
+        "scale_pos_weight": 461.56,
+        "subsample": 0.85,
+        "tree_method": "hist"
+      },
+      "early_stopping": "50 rounds, validation aucpr"
+    }
+  },
+  "previous_models": "models/real/archive_master_127_labels/ (trained on the 127-positive pre-freeze master)"
+}

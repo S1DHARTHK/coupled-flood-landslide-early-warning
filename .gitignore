@@ -20,14 +20,14 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
-# Local / generated data
-updated_data/
+# Local-only folders (V1.0 layout): collected source data, synthetic reference
+# material, documentation, review quarantine, and historical archives
+collected_datasets/
+synthetic/
+documents/
+bin/
+archive/
 collecteddata/
 
-# Generated model artifacts
-models/real/*_training_log.txt
-
-# Local synthetic/generated datasets
-real_master_dataset.csv
-# Collected/raw research data
-collecteddata/
+# Generated console logs next to model artifacts
+artifacts/**/*_training_log.txt

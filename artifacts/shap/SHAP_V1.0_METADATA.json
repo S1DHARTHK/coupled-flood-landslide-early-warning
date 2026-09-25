@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-09-25T22:48:16+05:30",
+  "dataset": {
+    "name": "Master Dataset V1.0",
+    "path": "real_master_dataset.csv",
+    "sha256": "832145448d3b96330f70a229b1fc94db16f3fdc8767ecc6aae4903c900f46c94"
+  },
+  "explainer": "exact TreeSHAP via xgboost Booster.predict(pred_contribs=True) (ml/shap_explainability.py)",
+  "shap_space": "log-odds (margin)",
+  "population": {
+    "split": "test (held-out)",
+    "date_range": [
+      "2023-01-24",
+      "2024-12-31"
+    ],
+    "n_observations": 9912
+  },
+  "software": {
+    "python": "3.13.5",
+    "shap": "0.52.0",
+    "xgboost": "3.4.0",
+    "pandas": "2.3.1",
+    "numpy": "2.2.6"
+  },
+  "random_seed": "not applicable (exact TreeSHAP is deterministic)",
+  "models": {
+    "flood": {
+      "model_file": "models/real/flood_xgboost_model.json",
+      "model_sha256": "38755d9d7fc61292af6e86940773f0aa47f5b0e4f3a07b300239a6cf7125aced",
+      "n_trees": 9,
+      "features": [
+        "rainfall_1d_mm",
+        "rainfall_3d_mm",
+        "rainfall_7d_mm",
+        "rainfall_14d_mm",
+        "rainfall_30d_mm",
+        "soil_moisture",
+        "temperature_c",
+        "humidity_percent",
+        "elevation_m",
+        "river_level_m",
+        "distance_to_river_km",
+        "drainage_density"
+      ],
+      "n_features": 12,
+      "categorical_features": [],
+      "threshold": 0.5,
+      "base_value_logodds_mean": -0.000538,
+      "additivity_max_drift": 2.384185791015625e-07,
+      "n_observations_explained": 9912,
+      "n_positive_in_population": 123,
+      "outputs": [
+        "flood_shap_summary.png",
+        "flood_shap_bar.png",
+        "flood_shap_importance.json",
+        "flood_shap_importance.csv",
+        "flood_shap_directional.csv",
+        "flood_shap_example_explanation.json",
+        "flood_shap_dependence_rainfall_14d_mm.png",
+        "flood_shap_dependence_river_level_m.png",
+        "flood_shap_dependence_soil_moisture.png",
+        "flood_shap_dependence_rainfall_7d_mm.png"
+      ]
+    },
+    "landslide": {
+      "model_file": "models/real/landslide_xgboost_model.json",
+      "model_sha256": "c032d08b5dae22c445d5a096331f7a41003f301cb1d368028444046def608bd5",
+      "n_trees": 38,
+      "features": [
+        "rainfall_1d_mm",
+        "rainfall_3d_mm",
+        "rainfall_7d_mm",
+        "rainfall_14d_mm",
+        "rainfall_30d_mm",
+        "soil_moisture",
+        "temperature_c",
+        "humidity_percent",
+        "elevation_m",
+        "slope_degree",
+        "aspect_degree",
+        "curvature",
+        "land_cover",
+        "lithology"
+      ],
+      "n_features": 14,
+      "categorical_features": [
+        "land_cover",
+        "lithology"
+      ],
+      "threshold": 0.5,
+      "base_value_logodds_mean": 0.080453,
+      "additivity_max_drift": 1.0728836059570312e-06,
+      "n_observations_explained": 9912,
+      "n_positive_in_population": 10,
+      "outputs": [
+        "landslide_shap_summary.png",
+        "landslide_shap_bar.png",
+        "landslide_shap_importance.json",
+        "landslide_shap_importance.csv",
+        "landslide_shap_directional.csv",
+        "landslide_shap_example_explanation.json",
+        "landslide_shap_dependence_rainfall_3d_mm.png",
+        "landslide_shap_dependence_humidity_percent.png",
+        "landslide_shap_dependence_rainfall_1d_mm.png",
+        "landslide_shap_dependence_rainfall_30d_mm.png"
+      ]
+    }
+  }
+}

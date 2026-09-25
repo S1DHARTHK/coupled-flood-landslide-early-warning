@@ -9,7 +9,7 @@ This project presents a **lead-time-oriented early warning framework for coupled
 
 The main objective is to investigate whether **temporally coupling independently predicted flood and landslide risks can provide earlier warnings than treating the hazards independently**. Warning **lead time is the primary evaluation focus**, supported by standard classification metrics such as precision, recall, F1-score, ROC-AUC, and PR-AUC.
 
-> **Current Status:** The current implementation uses synthetic data for development and testing of the complete pipeline. Real-world datasets and historical event timelines will be used for final evaluation.
+> **Current Status:** The whole pipeline (both XGBoost models, TCDL V1.0, SHAP, the FastAPI backend and the dashboard) runs on the **real Kerala district-day Master Dataset** (`dataset/real_master_dataset.csv`, 14 districts, 2012-01-30 to 2024-12-31). These are research outputs, not operational warnings. TCDL thresholds have not yet been recalibrated for the real models, so warnings are frequent and most are false alarms. The earlier synthetic dataset is kept for reference only.
 
 ---
 
@@ -112,4 +112,47 @@ Based on these temporal and cross-hazard conditions, TCDL generates the final wa
 
 The purpose of TCDL is to investigate whether combining the evolving risk signals of both hazards can provide useful warning time before a historical disaster event.
 
+---
 
+## 4. Running the Project
+
+Rebuild the real-data outputs (every script defaults to `--dataset real` and writes to `artifacts/`):
+
+```bash
+python scripts/models/flood_xgboost.py
+python scripts/models/landslide_xgboost.py
+python scripts/models/tcdl_v1.py
+python scripts/analysis/shap_explainability.py
+python backend/tools/record_dev_fixture.py   # refresh the frontend's offline fixture
+```
+
+Serve the API and the dashboard:
+
+```bash
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+npm --prefix frontend run dev
+```
+
+The backend reads the V1.0 artifacts from `artifacts/` (and the master dataset from `dataset/`) at startup, so a retrain only needs the scripts above and a restart; no code change. To serve the old synthetic pipeline instead, start the backend with `CAPSTONE_DASHBOARD_DATA=synthetic`.
+
+Backend tests (real pipeline, run from the project root):
+
+```bash
+python backend/tests/test_real_integration.py
+```
+
+## 5. Project Layout
+
+```text
+backend/              FastAPI service (reads dataset/ and artifacts/)
+frontend/             React dashboard
+dataset/              frozen Master Dataset V1.0 (real_master_dataset.csv)
+artifacts/            final V1.0 outputs: models/, results/, tcdl/, shap/
+archive/              pre-V1.0 models, SHAP, TCDL and a training log (historical, not served)
+scripts/              data/ (01-13, label verification), models/ (XGBoost, TCDL),
+                      analysis/ (SHAP, 15-16), validation/ (08, 14, audits)
+collected_datasets/   local source data used to build the master dataset (not in Git)
+synthetic/            synthetic reference dataset, models and outputs (not in Git)
+documents/            reports and documentation (not in Git)
+bin/                  quarantine for files awaiting manual review (not in Git)
+```

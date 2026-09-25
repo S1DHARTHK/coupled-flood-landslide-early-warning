@@ -1,0 +1,15 @@
+rank,feature,mean_abs_shap,share_of_total,mean_signed_shap,is_categorical
+1,rainfall_3d_mm,0.520134,0.198275,-0.383904,False
+2,humidity_percent,0.431099,0.164335,-0.339209,False
+3,rainfall_1d_mm,0.383651,0.146248,-0.339914,False
+4,rainfall_30d_mm,0.355773,0.13562,-0.274767,False
+5,rainfall_14d_mm,0.231838,0.088377,-0.231013,False
+6,temperature_c,0.216768,0.082632,-0.202351,False
+7,elevation_m,0.159218,0.060694,-0.121081,False
+8,soil_moisture,0.116048,0.044237,-0.115981,False
+9,rainfall_7d_mm,0.112831,0.043011,-0.091778,False
+10,slope_degree,0.069733,0.026582,-0.046453,False
+11,aspect_degree,0.015546,0.005926,-0.014655,False
+12,curvature,0.01066,0.004063,-0.007014,False
+13,land_cover,0.0,0.0,0.0,True
+14,lithology,0.0,0.0,0.0,True

@@ -130,9 +130,18 @@ export function num(v: number | null | undefined, digits = 2): string {
   return v.toFixed(digits);
 }
 
-export function hours(v: number | null | undefined, digits = 1): string {
-  if (v === null || v === undefined || Number.isNaN(v)) return "—";
-  return `${v.toFixed(digits)} h`;
+/**
+ * Lead time for display, in DAYS.
+ *
+ * The API's lead-time fields are named *_hours for compatibility, but the data
+ * has daily resolution: each value is a whole number of days x 24, not an
+ * hour-level timing. Showing hours would imply precision the data lacks, so the
+ * value is converted to days here.
+ */
+export function leadDays(hoursValue: number | null | undefined, digits = 1): string {
+  if (hoursValue === null || hoursValue === undefined || Number.isNaN(hoursValue)) return "—";
+  const d = hoursValue / 24;
+  return `${d.toFixed(digits)} ${d === 1 ? "day" : "days"}`;
 }
 
 /** Direction arrow for a rate-of-change signal. */

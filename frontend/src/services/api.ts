@@ -9,10 +9,12 @@
  * --------------------
  * If the live API is unreachable, requests fall back to `devFixture.json`,
  * which holds RECORDED RESPONSES from this project's own FastAPI backend
- * running on synthetic data. It is not hand-written fake data, and it is
- * confined to this module so the rest of the app cannot depend on it. Every
- * response carries `sourceMode` so the UI can state plainly where the numbers
- * came from.
+ * (re-record with `python backend/tools/record_dev_fixture.py`). It is not
+ * hand-written fake data, and it is confined to this module so the rest of
+ * the app cannot depend on it. Every response carries `sourceMode` so the UI
+ * can state plainly where the numbers came from. A request the recording
+ * cannot answer exactly (another day, another filter) is NOT substituted --
+ * the original error propagates instead.
  *
  * ENDPOINT MAPPING
  * ----------------
@@ -26,15 +28,33 @@
  *   GET  /leadtime                -> per-event lead-time records
  *   GET  /models/performance      GET  /models/features
  *   GET  /locations
+ *   GET  /districts               GET  /districts/{district}/observation
+ *
+ * MODEL SETS
+ * ----------
+ * Every route is served by the REAL pipeline (artifacts/: XGBoost models,
+ * TCDL outputs, SHAP) unless the backend was started with
+ * CAPSTONE_DASHBOARD_DATA=synthetic. Every response carries `data_mode`, so
+ * each view labels its own source rather than assuming one.
+ *
+ * LOCATIONS AND DATES
+ * -------------------
+ * `locationId` accepts a backend location_id or a district name. `asOf` /
+ * `end` replay history: the dashboard shows what the system produced on that
+ * day, from the stored pipeline outputs.
  */
 
 import fixture from "../data/devFixture.json";
 import type {
   CurrentResponse,
+  DistrictObservationResponse,
+  DistrictsResponse,
   EvaluationResponse,
   FeaturesResponse,
+  HazardPredictionResponse,
   HealthResponse,
   LeadTimeResponse,
+  Observation,
   LocationsResponse,
   ModelsStatusResponse,
   PerformanceResponse,
@@ -125,7 +145,27 @@ async function withFallback<T>(
   }
 }
 
-const fx = fixture as unknown as Record<string, any>;
+/** Shape of the recording written by backend/tools/record_dev_fixture.py. */
+interface DevFixture {
+  health?: HealthResponse;
+  models_status?: ModelsStatusResponse;
+  locations?: LocationsResponse;
+  current?: CurrentResponse;
+  warnings?: WarningsResponse;
+  evaluation?: Partial<Record<HazardScope, EvaluationResponse>>;
+  leadtime?: LeadTimeResponse;
+  models_performance?: PerformanceResponse;
+  models_features?: FeaturesResponse;
+  trends?: Record<string, TrendsResponse>;
+  shap?: {
+    global?: Partial<Record<HazardModel, ShapGlobalResponse>>;
+    current?: Partial<
+      Record<ExplainMode, Partial<Record<HazardModel, Record<string, ShapExplanationResponse>>>>
+    >;
+  };
+}
+
+const fx = fixture as unknown as DevFixture;
 
 // ---------------------------------------------------------------------
 // System
@@ -142,22 +182,39 @@ export const getModelsStatus = () =>
 export const getLocations = () =>
   withFallback<LocationsResponse>("/locations", () => fx.locations);
 
-export const getCurrent = (locationId?: string) => {
-  const qs = locationId ? `?location_id=${encodeURIComponent(locationId)}` : "";
+const matchesLocation = (
+  l: { location_id: string; district?: string | null },
+  id: string
+) => l.location_id === id || (l.district ?? "").toLowerCase() === id.toLowerCase();
+
+export const getCurrent = (locationId?: string, asOf?: string) => {
+  const p = new URLSearchParams();
+  if (locationId) p.set("location_id", locationId);
+  if (asOf) p.set("as_of", asOf);
+  const qs = p.toString() ? `?${p.toString()}` : "";
   return withFallback<CurrentResponse>(`/current${qs}`, () => {
     const all = fx.current as CurrentResponse | undefined;
     if (!all) return undefined;
+    // The recording holds one day only; never present it as another day.
+    if (asOf && asOf !== all.as_of) return undefined;
     if (!locationId) return all;
-    const one = all.locations.filter((l) => l.location_id === locationId);
+    const one = all.locations.filter((l) => matchesLocation(l, locationId));
     return one.length ? { ...all, locations: one, n_locations: one.length } : undefined;
   });
 };
 
-export const getTrends = (locationId: string, limit = 200) =>
-  withFallback<TrendsResponse>(
-    `/trends?location_id=${encodeURIComponent(locationId)}&limit=${limit}`,
-    () => (fx.trends ?? {})[locationId]
-  );
+export const getTrends = (locationId: string, limit = 200, end?: string) => {
+  const p = new URLSearchParams({ location_id: locationId, limit: String(limit) });
+  if (end) p.set("end", end);
+  return withFallback<TrendsResponse>(`/trends?${p.toString()}`, () => {
+    const rec = (fx.trends ?? {})[locationId] as TrendsResponse | undefined;
+    if (!rec) return undefined;
+    if (end && rec.series.length && rec.series[rec.series.length - 1].date !== end) {
+      return undefined;
+    }
+    return { ...rec, series: rec.series.slice(-limit), n_records: Math.min(limit, rec.n_records) };
+  });
+};
 
 /**
  * Empty trends payload for the render pass before a location is known.
@@ -169,7 +226,7 @@ export const getTrends = (locationId: string, limit = 200) =>
 export const emptyTrends = (locationId = ""): Promise<ApiResult<TrendsResponse>> =>
   Promise.resolve({
     data: {
-      data_mode: "synthetic",
+      data_mode: "",
       location_id: locationId,
       n_records: 0,
       parameters: {},
@@ -183,6 +240,7 @@ export interface WarningQuery {
   locationId?: string;
   start?: string;
   end?: string;
+  split?: "train" | "validation" | "test";
   warningOnly?: boolean;
   limit?: number;
 }
@@ -192,19 +250,25 @@ export const getWarnings = (q: WarningQuery = {}) => {
   if (q.locationId) p.set("location_id", q.locationId);
   if (q.start) p.set("start", q.start);
   if (q.end) p.set("end", q.end);
+  if (q.split) p.set("split", q.split);
   if (q.warningOnly !== undefined) p.set("warning_only", String(q.warningOnly));
   p.set("limit", String(q.limit ?? 400));
   return withFallback<WarningsResponse>(`/warnings?${p.toString()}`, () => {
     const all = fx.warnings as WarningsResponse | undefined;
     if (!all) return undefined;
-    // The fixture holds warning rows only; a request for every timestep
-    // cannot be honoured offline, so signal that rather than mislead.
-    if (q.warningOnly === false) return undefined;
+    // The recording holds the most recent warning rows only. A request for
+    // every timestep, a split, or a range older than the recording cannot be
+    // honoured offline, so signal that rather than mislead.
+    if (q.warningOnly === false || q.split) return undefined;
+    const oldest = all.records.length ? all.records[0].date : "";
+    if (all.truncated && (!q.start || q.start < oldest)) return undefined;
     let recs = all.records;
-    if (q.locationId) recs = recs.filter((r) => r.location_id === q.locationId);
+    if (q.locationId) recs = recs.filter((r) => matchesLocation(r, q.locationId!));
     if (q.start) recs = recs.filter((r) => r.date >= q.start!);
     if (q.end) recs = recs.filter((r) => r.date <= q.end!);
-    return { ...all, records: recs, n_records: recs.length };
+    recs = recs.slice(-(q.limit ?? 400));
+    return { ...all, records: recs, n_records: recs.length, n_matching: recs.length,
+             truncated: false };
   });
 };
 
@@ -273,27 +337,47 @@ export type ExplainMode = "current" | "peak";
 export const getShapExplanation = (
   model: HazardModel,
   locationId: string,
-  mode: ExplainMode = "current"
-) =>
-  withFallback<ShapExplanationResponse>(
-    `/explain/current?model=${model}&location_id=${encodeURIComponent(
-      locationId
-    )}&mode=${mode}`,
-    () => (((fx.shap?.current ?? {})[mode] ?? {})[model] ?? {})[locationId]
+  mode: ExplainMode = "current",
+  date?: string
+) => {
+  const p = new URLSearchParams({ model, location_id: locationId, mode });
+  if (date && mode === "current") p.set("date", date);
+  return withFallback<ShapExplanationResponse>(`/explain/current?${p.toString()}`, () => {
+    const rec = (((fx.shap?.current ?? {})[mode] ?? {})[model] ?? {})[locationId] as
+      | ShapExplanationResponse
+      | undefined;
+    if (rec && date && mode === "current" && rec.sample?.date !== date) return undefined;
+    return rec;
+  });
+};
+
+
+// Real district data (live only -- real observations are never substituted)
+// ---------------------------------------------------------------------
+export const getDistricts = () =>
+  withFallback<DistrictsResponse>("/districts", () => undefined);
+
+export const getDistrictObservation = (district: string, date?: string) => {
+  const qs = date ? `?date=${encodeURIComponent(date)}` : "";
+  return request<DistrictObservationResponse>(
+    `/districts/${encodeURIComponent(district)}/observation${qs}`
   );
+};
 
-
+// ---------------------------------------------------------------------
 // Prediction (live only -- no fixture, because a prediction for
 // caller-supplied input cannot be faked without inventing results)
 // ---------------------------------------------------------------------
-export const predictFlood = (observations: Record<string, unknown>[]) =>
-  request("/predict/flood", {
+export const predictFlood = (observations: (Observation | Record<string, unknown>)[]) =>
+  request<HazardPredictionResponse>("/predict/flood", {
     method: "POST",
     body: JSON.stringify({ observations }),
   });
 
-export const predictLandslide = (observations: Record<string, unknown>[]) =>
-  request("/predict/landslide", {
+export const predictLandslide = (
+  observations: (Observation | Record<string, unknown>)[]
+) =>
+  request<HazardPredictionResponse>("/predict/landslide", {
     method: "POST",
     body: JSON.stringify({ observations }),
   });

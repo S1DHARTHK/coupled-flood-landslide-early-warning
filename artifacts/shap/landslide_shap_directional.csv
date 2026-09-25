@@ -1,0 +1,15 @@
+feature,kind,spearman_value_vs_shap,mean_shap_low_quartile,mean_shap_high_quartile,detail
+rainfall_3d_mm,numeric,0.646,-0.6346,0.2464,distinct values in population: 7387
+humidity_percent,numeric,0.144,-0.3536,-0.0106,distinct values in population: 3372
+rainfall_1d_mm,numeric,0.828,-0.5247,0.0029,distinct values in population: 6256
+rainfall_30d_mm,numeric,0.49,-0.3781,0.1381,distinct values in population: 8375
+rainfall_14d_mm,numeric,0.519,-0.2761,-0.1231,distinct values in population: 8193
+temperature_c,numeric,-0.64,0.027,-0.2746,distinct values in population: 1066
+elevation_m,numeric,0.93,-0.3379,0.0576,distinct values in population: 14
+soil_moisture,numeric,-0.004,-0.0862,-0.0906,distinct values in population: 74
+rainfall_7d_mm,numeric,0.454,-0.1189,-0.0085,distinct values in population: 7818
+slope_degree,numeric,0.799,-0.1112,0.0207,distinct values in population: 14
+aspect_degree,numeric,0.251,-0.0213,-0.0094,distinct values in population: 13
+curvature,numeric,-0.27,0.0011,-0.0079,distinct values in population: 13
+land_cover,categorical,,,,forest: +0.000 (n=9912.0)
+lithology,categorical,,,,alluvium: +0.000 (n=708.0); granite_gneiss: +0.000 (n=9204.0)
