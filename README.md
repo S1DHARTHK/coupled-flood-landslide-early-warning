@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/kerala-ews-heading.webp" alt="Kerala EWS" width="100%">
+  <img src=".github/assets/kerala-ews-heading.webp" alt="Kerala EWS" width="360">
 </p>
 
 <h1 align="center"><b>Kerala Flood–Landslide Early Warning System (V1.0)</b></h1>
