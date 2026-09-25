@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <h3><b>Kerala Flood–Landslide Early Warning System (V1.0)</b></h3><br>
+  <b><h3>Kerala Flood–Landslide Early Warning System (V1.0)</h3></b><br>
   Two independent XGBoost hazard models, coupled by a transparent rule-based Temporal Coupled Decision Layer
 </p>
 
