@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "backend/main.py": {
-      "excludeFiles": "{frontend/**,backend/tests/**,backend/tools/**,scripts/data/**,scripts/validation/**,scripts/analysis/15_shap_v1_supplement.py,scripts/analysis/16_tcdl_v1_supplement.py,artifacts/shap/**,artifacts/results/*_test_predictions.csv,artifacts/results/*.png,artifacts/tcdl/*.png}"
+      "excludeFiles": "{frontend/**,backend/tests/**,backend/tools/**,scripts/data/**,scripts/validation/**,scripts/analysis/1[56]_*.py,artifacts/shap/**,artifacts/results/*_predictions.csv,artifacts/**/*.png}"
     }
   }
 }
