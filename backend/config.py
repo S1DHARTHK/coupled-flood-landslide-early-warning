@@ -168,6 +168,18 @@ CORS_ORIGINS = [
     "http://localhost:8080", "http://127.0.0.1:8080",
 ]
 
+# Deployed frontends are added through environment variables, so the backend
+# never hard-codes a frontend domain (localhost access above is unchanged):
+#   CAPSTONE_CORS_ORIGINS       comma-separated exact origins, e.g.
+#                               "https://my-frontend.vercel.app"
+#   CAPSTONE_CORS_ORIGIN_REGEX  optional pattern for extra origins (e.g. preview
+#                               deployments), matched against the whole origin
+CORS_ORIGINS += [o.strip().rstrip("/") for o in
+                 os.environ.get("CAPSTONE_CORS_ORIGINS", "").split(",") if o.strip()]
+if os.environ.get("CAPSTONE_CORS_ORIGIN_REGEX", "").strip():
+    CORS_ORIGIN_REGEX = (f"(?:{CORS_ORIGIN_REGEX})|"
+                         f"(?:{os.environ['CAPSTONE_CORS_ORIGIN_REGEX'].strip()})")
+
 
 def detect_data_mode() -> str:
     """
