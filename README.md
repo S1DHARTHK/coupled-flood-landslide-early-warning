@@ -1,5 +1,10 @@
 <p align="center">
-  <h3>Kerala Flood-Landslide Early Warning System (V1.0)</h3>
+  <img src=".github/assets/kerala-ews-heading.webp" alt="Kerala EWS" width="100%">
+</p>
+
+<h1 align="center"><b>Kerala Flood–Landslide Early Warning System (V1.0)</b></h1>
+
+<p align="center">
   Two independent XGBoost hazard models, coupled by a transparent rule-based Temporal Coupled Decision Layer
 </p>
 
