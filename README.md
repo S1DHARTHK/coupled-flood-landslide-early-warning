@@ -116,6 +116,8 @@ The purpose of TCDL is to investigate whether combining the evolving risk signal
 
 ## 4. Running the Project
 
+Install the API dependencies with `pip install -r requirements.txt`. The training, SHAP-plotting and data scripts also need `pip install -r requirements-research.txt`.
+
 Rebuild the real-data outputs (every script defaults to `--dataset real` and writes to `artifacts/`):
 
 ```bash

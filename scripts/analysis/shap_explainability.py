@@ -63,14 +63,29 @@ import json
 from pathlib import Path
 from typing import Any, Iterable, Literal
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
-import shap
 import xgboost as xgb
+
+
+# matplotlib and the `shap` library are imported on first use. Only the offline
+# plots (and the offline consistency check) need them; the FastAPI backend imports
+# this module for explanations, which come from XGBoost's exact TreeSHAP
+# (pred_contribs), so the deployed API never loads either library.
+def _plt():
+    """matplotlib.pyplot with the non-interactive Agg backend."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    return plt
+
+
+def _shap():
+    """The `shap` library (Agg is selected first, as the eager import used to do)."""
+    _plt()
+    import shap
+    return shap
 
 ModelKey = Literal["flood", "landslide"]
 
@@ -429,6 +444,7 @@ def explain_test_sample(key: ModelKey, index: int = 0, top_k: int | None = None)
 # =====================================================================
 def _save_bar_plot(key: ModelKey, values: np.ndarray, X_plot: pd.DataFrame,
                    path: Path) -> None:
+    plt, shap = _plt(), _shap()
     model = get_model(key)
     plt.figure()
     shap.summary_plot(values, X_plot, feature_names=model.features,
@@ -444,6 +460,7 @@ def _save_bar_plot(key: ModelKey, values: np.ndarray, X_plot: pd.DataFrame,
 
 def _save_beeswarm_plot(key: ModelKey, values: np.ndarray, X_plot: pd.DataFrame,
                         path: Path) -> None:
+    plt, shap = _plt(), _shap()
     model = get_model(key)
     plt.figure()
     shap.summary_plot(values, X_plot, feature_names=model.features,
@@ -467,6 +484,7 @@ def prediction_consistency_check(key: ModelKey, X: pd.DataFrame) -> dict:
     This is the guarantee the task requires: adding the explanation layer
     must not perturb a single probability.
     """
+    shap = _shap()
     model = get_model(key)
     before = model.predict_proba(X).copy()
 
@@ -588,7 +606,7 @@ def main(argv=None) -> None:
     banner("SHAP EXPLAINABILITY -- FLOOD & LANDSLIDE XGBOOST")
     print(DATASET["banner"])
     print("Explanation layer only: no retraining, no model or TCDL changes.")
-    print(f"shap {shap.__version__} | xgboost {xgb.__version__}")
+    print(f"shap {_shap().__version__} | xgboost {xgb.__version__}")
 
     banner("1. LOADING FROZEN MODELS AND TEST SPLIT", "-")
     test = load_test_split()

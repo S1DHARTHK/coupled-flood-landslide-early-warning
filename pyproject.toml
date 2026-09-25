@@ -2,17 +2,21 @@
 name = "coupled-flood-landslide-early-warning"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
+# Runtime dependencies of the deployed FastAPI backend (what Vercel installs).
+# Training, SHAP plots and the research scripts also need the packages in
+# requirements-research.txt (scikit-learn, matplotlib, shap).
 dependencies = [
-    "numpy==2.2.6",
-    "pandas==2.3.1",
-    "xgboost==3.4.0",
-    "scikit-learn==1.7.2",
-    "matplotlib==3.10.3",
-    "shap==0.52.0",
     "fastapi==0.141.1",
     "uvicorn==0.35.0",
     "pydantic==2.11.7",
-    "scipy==1.16.0",
+    "numpy==2.2.6",
+    "pandas==2.3.1",
+    "scipy==1.16.0",  # imported by xgboost (scipy.sparse)
+    # Same XGBoost 3.4.0 library either way. On Linux (Vercel) the default wheel is
+    # a GPU build that also pulls NVIDIA NCCL; the CPU-only build serves the V1.0
+    # models with identical predictions. Other platforms keep the default wheel.
+    "xgboost-cpu==3.4.0; sys_platform == 'linux'",
+    "xgboost==3.4.0; sys_platform != 'linux'",
 ]
 
 [tool.vercel]

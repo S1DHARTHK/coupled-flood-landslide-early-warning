@@ -1,0 +1,6 @@
+# Everything the API needs, plus the packages used only offline by the training,
+# SHAP-plotting and data/validation scripts (not installed on Vercel).
+-r requirements.txt
+scikit-learn==1.7.2
+matplotlib==3.10.3
+shap==0.52.0

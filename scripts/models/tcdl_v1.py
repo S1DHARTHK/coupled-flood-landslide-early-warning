@@ -86,9 +86,6 @@ import argparse
 import json
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
@@ -727,6 +724,11 @@ def warning_load(eval_df: pd.DataFrame, events: pd.DataFrame,
 def plot_example_timeline(eval_df: pd.DataFrame, events: pd.DataFrame,
                           th: dict, path: Path) -> str:
     """Explainability aid: one location's signals, warnings and onsets."""
+    # Imported here, not at module level: the FastAPI backend imports this module
+    # for the TCDL rules only and never plots, so it does not need matplotlib.
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
     counts = (events[events["hazard_type"] == "any_hazard"]
               .groupby("location_id").size().sort_values(ascending=False))
     loc = counts.index[0]

@@ -1,10 +1,10 @@
-numpy==2.2.6
-pandas==2.3.1
-xgboost==3.4.0
-scikit-learn==1.7.2
-matplotlib==3.10.3
-shap==0.52.0
-scipy==1.16.0
+# Runtime dependencies of the FastAPI backend (mirrors [project].dependencies in pyproject.toml).
+# Training, SHAP plots and research scripts: pip install -r requirements-research.txt
 fastapi==0.141.1
 uvicorn==0.35.0
 pydantic==2.11.7
+numpy==2.2.6
+pandas==2.3.1
+scipy==1.16.0
+xgboost-cpu==3.4.0; sys_platform == "linux"
+xgboost==3.4.0; sys_platform != "linux"
