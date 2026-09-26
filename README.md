@@ -42,7 +42,7 @@ The system:
 | Warning timeline | Per-district warning history with the triggered rules behind every warning |
 | Lead-time evaluation | 66 test-period hazard onsets, date-quantised lead times, comparison with single-hazard thresholds |
 | Explainability | Exact TreeSHAP attributions for the real V1.0 models, global and per prediction |
-| Real-model predictions | `POST /predict/flood` and `/predict/landslide` always score with the real V1.0 models |
+| Real-model predictions  | `POST /predict/flood` and `/predict/landslide` always score with the real V1.0 models |
 
 ## System Architecture
 
