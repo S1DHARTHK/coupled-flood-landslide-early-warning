@@ -118,10 +118,10 @@ export default function EarlyWarningDashboard() {
                 command="./ews status --coupled"
                 comment="two XGBoost models + TCDL V1.0"
               />
-              <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#eafff1] sm:text-[32px] [text-shadow:0_0_14px_rgba(57,255,122,0.35)]">
+              <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#f5fbe9] sm:text-[32px] [text-shadow:0_0_14px_rgba(142, 240, 117,0.35)]">
                 Kerala Flood&ndash;Landslide Early Warning
               </h1>
-              <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
+              <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#8ea97e] sm:text-[13px]">
                 Two independent XGBoost hazard models feeding a rule-based Temporal
                 Coupled Decision Layer (TCDL V1.0)
                 {current.data?.as_of ? ` · as of ${current.data.as_of}` : ""}
@@ -212,7 +212,7 @@ export default function EarlyWarningDashboard() {
                           showLegend={false}
                         />
                       </div>
-                      <p className="mt-3 text-[10px] leading-relaxed text-[#3d6b47]">
+                      <p className="mt-3 text-[10px] leading-relaxed text-[#6a8958]">
                         {isReal
                           ? "Data are district-level: one value per district per day, so a marker stands for the whole district, not a single site. River level is missing where no CWC gauge reading exists (no gauge in Alappuzha, Kottayam and Wayanad; none before mid-2015 in seven more) and is shown as “—”, never filled."
                           : "The synthetic dataset carries no district field, so markers show coordinates only — no district is inferred from position. Because these coordinates are simulated rather than surveyed Kerala sites, some points fall outside the state boundary."}
@@ -364,15 +364,15 @@ export default function EarlyWarningDashboard() {
           {/* ------------------------------------------------ footer */}
           <div className="crt-rule mt-10" />
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
-            <p className="text-[#5f8d68]">
-              <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
+            <p className="text-[#8ea97e]">
+              <span className="text-[#8ef075] crt-glow-soft">$</span> echo
               &quot;
               {isReal
                 ? "real historical data · research output, not an operational warning"
                 : "synthetic development data · not a real-world Kerala warning"}
               &quot; <span className="crt-caret align-middle" />
             </p>
-            <p className="text-[#1c7a3c]">
+            <p className="text-[#538f3d]">
               models: flood_xgboost@v1.0 landslide_xgboost@v1.0 · tcdl@v1.0 ·{" "}
               {unit}s: {locations.length}
             </p>

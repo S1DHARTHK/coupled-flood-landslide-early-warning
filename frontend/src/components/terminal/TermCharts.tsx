@@ -14,8 +14,8 @@ import { SYSTEM_LABELS, leadDays, pct } from "../hazard/hazardUtils";
 import { TERM } from "./termColors";
 
 const MONO = '"JetBrains Mono", ui-monospace, monospace';
-const GRID = "#0f2a12";
-const AXIS = "#3d6b47";
+const GRID = "#1e2e14";
+const AXIS = "#6a8958";
 
 /** Shared console styling for every chart on the page. */
 function baseOptions(
@@ -188,7 +188,7 @@ export function TermRateOfIncreaseChart({ series, height = 300 }: ChartProps) {
     { key: "flood_prob_rate", name: "flood rate", color: TERM.dim },
     { key: "landslide_prob_rate", name: "landslide rate", color: TERM.amber },
     { key: "coupled_prob_rate", name: "coupled rate", color: TERM.phosphor },
-    { key: "soil_moisture_rate", name: "soil moisture rate", color: "#8fbf98" },
+    { key: "soil_moisture_rate", name: "soil moisture rate", color: "#b2caa0" },
   ] as const;
   const options: ApexOptions = {
     ...baseOptions(
@@ -199,7 +199,7 @@ export function TermRateOfIncreaseChart({ series, height = 300 }: ChartProps) {
       yaxis: [
         {
           y: 0,
-          borderColor: "#1f4d1f",
+          borderColor: "#3d5d2d",
           strokeDashArray: 3,
           label: {
             text: "no change",
@@ -259,13 +259,13 @@ export function TermEvaluationNotes({
   if (!entries.length) return null;
   return (
     <div className="crt-inset p-4">
-      <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+      <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
         how to read these results
       </p>
       <ul className="space-y-2">
         {entries.map(([k, v]) => (
-          <li key={k} className="text-[11px] leading-relaxed text-[#5f8d68]">
-            <span className="text-[#cfe9d5]">{k.replace(/_/g, " ")}:</span> {v}
+          <li key={k} className="text-[11px] leading-relaxed text-[#8ea97e]">
+            <span className="text-[#dbe9ce]">{k.replace(/_/g, " ")}:</span> {v}
           </li>
         ))}
       </ul>
@@ -304,7 +304,7 @@ export function TermLeadTimeChart({
     dataLabels: {
       enabled: true,
       formatter: (v: number) => (v ? `${v.toFixed(1)}d` : ""),
-      style: { fontSize: "10px", fontWeight: 600, fontFamily: MONO, colors: ["#eafff1"] },
+      style: { fontSize: "10px", fontWeight: 600, fontFamily: MONO, colors: ["#f5fbe9"] },
     },
     legend: {
       show: true,
@@ -405,7 +405,7 @@ export function TermEvaluationTable({
                       {SYSTEM_LABELS[k] ?? k}
                     </span>
                     {isControl && (
-                      <span className="text-[10px] text-[#1c7a3c]">[reference]</span>
+                      <span className="text-[10px] text-[#538f3d]">[reference]</span>
                     )}
                   </span>
                 </td>
@@ -423,7 +423,7 @@ export function TermEvaluationTable({
           })}
         </tbody>
       </table>
-      <p className="mt-2 text-[10px] leading-relaxed text-[#3d6b47]">
+      <p className="mt-2 text-[10px] leading-relaxed text-[#6a8958]">
         Lead times are mean days per detected onset and are date-based: the data has
         daily resolution, so they are not hour-level timings.
       </p>

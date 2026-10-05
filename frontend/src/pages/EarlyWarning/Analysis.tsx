@@ -96,8 +96,8 @@ export default function AnalysisPage() {
       <TerminalWindow
         path="~/analysis"
         status={
-          <span className="flex items-center gap-2 text-[13px] text-[#5f8d68]">
-            <span className="text-[#39ff7a]">{locations.length}</span>{" "}
+          <span className="flex items-center gap-2 text-[13px] text-[#8ea97e]">
+            <span className="text-[#8ef075]">{locations.length}</span>{" "}
             {isReal ? "districts" : "points"}
           </span>
         }
@@ -108,10 +108,10 @@ export default function AnalysisPage() {
             comment="full temporal signal set"
             cwd="~/analysis"
           />
-          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#eafff1] sm:text-[30px] [text-shadow:0_0_14px_rgba(57,255,122,0.35)]">
+          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#f5fbe9] sm:text-[30px] [text-shadow:0_0_14px_rgba(142, 240, 117,0.35)]">
             Analysis
           </h1>
-          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
+          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#8ea97e] sm:text-[13px]">
             Every signal the two XGBoost models and the TCDL rules consume, for one
             {isReal ? " district" : " monitoring point"} at a time, plus the evaluation
             the pipeline produced.
@@ -155,7 +155,7 @@ export default function AnalysisPage() {
                 </Field>
 
                 {selected && (
-                  <div className="flex flex-wrap gap-5 pb-1 text-[11px] text-[#3d6b47]">
+                  <div className="flex flex-wrap gap-5 pb-1 text-[11px] text-[#6a8958]">
                     <span>
                       flood{" "}
                       <span style={{ color: TERM.dim }}>
@@ -170,7 +170,7 @@ export default function AnalysisPage() {
                     </span>
                     <span>
                       tcdl{" "}
-                      <span className="text-[#eafff1]">
+                      <span className="text-[#f5fbe9]">
                         {selected.tcdl.warning_type}
                       </span>
                     </span>
@@ -252,12 +252,12 @@ export default function AnalysisPage() {
                       {envRows.map(([k, v]) => (
                         <div
                           key={k}
-                          className="flex items-baseline justify-between border-b border-[#0f2a12] py-1"
+                          className="flex items-baseline justify-between border-b border-[#1e2e14] py-1"
                         >
-                          <span className="truncate text-[11px] text-[#5f8d68]">
+                          <span className="truncate text-[11px] text-[#8ea97e]">
                             {k}
                           </span>
-                          <span className="ml-2 shrink-0 text-[11px] text-[#cfe9d5]">
+                          <span className="ml-2 shrink-0 text-[11px] text-[#dbe9ce]">
                             {v === null
                               ? "—"
                               : typeof v === "number"
@@ -268,7 +268,7 @@ export default function AnalysisPage() {
                       ))}
                     </div>
                     {env.unavailable_fields.length > 0 && (
-                      <p className="mt-3 text-[10px] text-[#3d6b47]">
+                      <p className="mt-3 text-[10px] text-[#6a8958]">
                         no value for this day:{" "}
                         {env.unavailable_fields.join(", ")} — shown as “—” rather than
                         substituted.
@@ -309,9 +309,9 @@ export default function AnalysisPage() {
                   </select>
                 </Field>
                 {evaluation.data && (
-                  <span className="pb-1 text-[11px] text-[#3d6b47]">
+                  <span className="pb-1 text-[11px] text-[#6a8958]">
                     evaluation period{" "}
-                    <span className="text-[#5f8d68]">
+                    <span className="text-[#8ea97e]">
                       {evaluation.data.evaluation_period.date_range.join(" → ")}
                     </span>{" "}
                     · {evaluation.data.evaluation_period.n_rows} rows
@@ -372,7 +372,7 @@ export default function AnalysisPage() {
                       return (
                         <div key={rule} className="crt-panel p-3">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[11px] text-[#cfe9d5]">{rule}</span>
+                            <span className="text-[11px] text-[#dbe9ce]">{rule}</span>
                             <span
                               className="rounded-[2px] px-1.5 py-0.5 text-[10px]"
                               style={{ color, border: `1px solid ${color}55` }}
@@ -380,7 +380,7 @@ export default function AnalysisPage() {
                               {isBaseline ? "baseline" : "coupling"}
                             </span>
                           </div>
-                          <p className="mt-1.5 text-[11px] leading-snug text-[#5f8d68]">
+                          <p className="mt-1.5 text-[11px] leading-snug text-[#8ea97e]">
                             {evaluation.data!.rules[rule]}
                           </p>
                           <div className="mt-2 flex items-center gap-2">
@@ -394,7 +394,7 @@ export default function AnalysisPage() {
                                 }}
                               />
                             </div>
-                            <span className="shrink-0 text-[10px] tabular-nums text-[#3d6b47]">
+                            <span className="shrink-0 text-[10px] tabular-nums text-[#6a8958]">
                               {n} days ({((n / total) * 100).toFixed(1)}%)
                             </span>
                           </div>
@@ -415,15 +415,15 @@ export default function AnalysisPage() {
           {/* ------------------------------------------------ footer */}
           <div className="crt-rule mt-10" />
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
-            <p className="text-[#5f8d68]">
-              <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
+            <p className="text-[#8ea97e]">
+              <span className="text-[#8ef075] crt-glow-soft">$</span> echo
               &quot;
               {isReal
                 ? "real historical data · research output, not an operational warning"
                 : "synthetic development data · not a real-world Kerala warning"}
               &quot; <span className="crt-caret align-middle" />
             </p>
-            <p className="text-[#1c7a3c]">
+            <p className="text-[#538f3d]">
               scope: {scope} · {isReal ? "district" : "point"}:{" "}
               {selected?.district ?? activeId ?? "—"}
             </p>

@@ -80,10 +80,10 @@ function UnavailableBlock({ height = 200 }: { height?: number }) {
       className="crt-inset flex flex-col items-center justify-center gap-2 px-6 text-center"
       style={{ minHeight: height }}
     >
-      <p className="text-[12px] text-[#5f8d68]">
+      <p className="text-[12px] text-[#8ea97e]">
         <span className="text-[#ffd24a]">[!]</span> shap explanation unavailable
       </p>
-      <p className="max-w-md text-[11px] text-[#3d6b47]">
+      <p className="max-w-md text-[11px] text-[#6a8958]">
         The explainability service did not respond. The rest of the dashboard is
         unaffected.
       </p>
@@ -99,18 +99,18 @@ function ContribRow({ c, maxAbs }: { c: ShapContribution; maxAbs: number }) {
   return (
     <div className="flex items-center gap-3 py-1">
       <div className="w-[130px] shrink-0">
-        <p className="truncate text-[11px] text-[#cfe9d5]">
+        <p className="truncate text-[11px] text-[#dbe9ce]">
           {label(c.feature)}
           {c.is_categorical && (
-            <span className="ml-1 text-[9px] text-[#1c7a3c]">cat</span>
+            <span className="ml-1 text-[9px] text-[#538f3d]">cat</span>
           )}
         </p>
-        <p className="text-[10px] text-[#3d6b47]">= {valueStr(c)}</p>
+        <p className="text-[10px] text-[#6a8958]">= {valueStr(c)}</p>
       </div>
 
       {/* Diverging track: left half pushes lower, right half pushes higher. */}
       <div className="crt-inset relative h-[10px] flex-1">
-        <span className="absolute inset-y-0 left-1/2 w-px bg-[#1f4d1f]" />
+        <span className="absolute inset-y-0 left-1/2 w-px bg-[#3d5d2d]" />
         <span
           className="absolute inset-y-[1px]"
           style={{
@@ -152,16 +152,16 @@ function ContribColumn({
       <p className="text-[11px]" style={{ color }}>
         {title}
       </p>
-      <p className="mb-2 mt-0.5 text-[10px] text-[#3d6b47]">{hint}</p>
+      <p className="mb-2 mt-0.5 text-[10px] text-[#6a8958]">{hint}</p>
       {items.length === 0 ? (
-        <p className="py-2 text-[11px] text-[#3d6b47]">{emptyText}</p>
+        <p className="py-2 text-[11px] text-[#6a8958]">{emptyText}</p>
       ) : (
         <ul className="space-y-1">
           {items.map((c) => (
             <li key={c.feature} className="flex items-baseline justify-between gap-2">
-              <span className="min-w-0 truncate text-[11px] text-[#5f8d68]">
+              <span className="min-w-0 truncate text-[11px] text-[#8ea97e]">
                 {label(c.feature)}
-                <span className="ml-1 text-[10px] text-[#1c7a3c]">
+                <span className="ml-1 text-[10px] text-[#538f3d]">
                   ({valueStr(c)})
                 </span>
               </span>
@@ -202,23 +202,23 @@ function Explanation({
       {/* Prediction headline */}
       <div className="crt-inset flex flex-wrap items-end justify-between gap-3 p-4">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
             {e.model_label} — predicted {hazard} risk
           </p>
           <p
-            className="mt-1 text-[28px] font-bold leading-none text-[#eafff1]"
-            style={{ textShadow: "0 0 14px rgba(57,255,122,0.35)" }}
+            className="mt-1 text-[28px] font-bold leading-none text-[#f5fbe9]"
+            style={{ textShadow: "0 0 14px rgba(142, 240, 117,0.35)" }}
           >
             {pct(e.probability, 1)}
           </p>
-          <p className="mt-1 text-[11px] text-[#5f8d68]">
+          <p className="mt-1 text-[11px] text-[#8ea97e]">
             {e.prediction === 1 ? "above" : "below"} the{" "}
             {pct(e.decision_threshold, 0)} decision threshold
             {e.sample ? ` · ${e.sample.date}` : ""}
             {e.sample?.district ? ` · ${e.sample.district}` : ""}
           </p>
           {e.sample && (
-            <p className="mt-0.5 text-[10px] text-[#3d6b47]">
+            <p className="mt-0.5 text-[10px] text-[#6a8958]">
               recorded {hazard}:{" "}
               {e.sample.actual_label === 1
                 ? "yes"
@@ -230,23 +230,23 @@ function Explanation({
           )}
         </div>
         <div className="text-right">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
             model base value
           </p>
-          <p className="mt-1 text-[15px] text-[#cfe9d5]">
+          <p className="mt-1 text-[15px] text-[#dbe9ce]">
             {pct(e.base_value_probability, 1)}
           </p>
-          <p className="text-[10px] text-[#3d6b47]">
+          <p className="text-[10px] text-[#6a8958]">
             average prediction before features
           </p>
         </div>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-[#5f8d68]">
+      <p className="text-[11px] leading-relaxed text-[#8ea97e]">
         Starting from the model&apos;s base value of{" "}
-        <span className="text-[#39ff7a]">{pct(e.base_value_probability, 1)}</span>,
+        <span className="text-[#8ef075]">{pct(e.base_value_probability, 1)}</span>,
         these features pushed the {hazard} model&apos;s prediction to{" "}
-        <span className="text-[#39ff7a]">{pct(e.probability, 1)}</span>. A positive
+        <span className="text-[#8ef075]">{pct(e.probability, 1)}</span>. A positive
         value pushes the prediction{" "}
         <span style={{ color: HIGHER }}>higher</span>; a negative value pushes it{" "}
         <span style={{ color: LOWER }}>lower</span>. These describe the model&apos;s
@@ -271,7 +271,7 @@ function Explanation({
       </div>
 
       <div>
-        <p className="mb-1.5 text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+        <p className="mb-1.5 text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
           top contributing features
         </p>
         <div className="crt-inset px-3 py-2">
@@ -279,7 +279,7 @@ function Explanation({
             <ContribRow key={c.feature} c={c} maxAbs={maxAbs} />
           ))}
         </div>
-        <p className="mt-2 text-[10px] leading-relaxed text-[#3d6b47]">
+        <p className="mt-2 text-[10px] leading-relaxed text-[#6a8958]">
           SHAP values are in log-odds space and sum, with the base value, to the model
           output (additivity check{" "}
           <span
@@ -316,9 +316,9 @@ function GlobalImportance({
         const color = cat ? TERM.amber : TERM.phosphor;
         return (
           <div key={r.feature} className="flex items-center gap-3">
-            <span className="w-[130px] shrink-0 truncate text-[11px] text-[#5f8d68]">
+            <span className="w-[130px] shrink-0 truncate text-[11px] text-[#8ea97e]">
               {label(r.feature)}
-              {cat && <span className="ml-1 text-[9px] text-[#1c7a3c]">cat</span>}
+              {cat && <span className="ml-1 text-[9px] text-[#538f3d]">cat</span>}
             </span>
             <div className="crt-meter flex-1">
               <div
@@ -330,9 +330,9 @@ function GlobalImportance({
                 }}
               />
             </div>
-            <span className="w-[110px] shrink-0 text-right text-[10px] tabular-nums text-[#3d6b47]">
+            <span className="w-[110px] shrink-0 text-right text-[10px] tabular-nums text-[#6a8958]">
               {r.mean_abs_shap.toFixed(3)}
-              <span className="ml-1.5 text-[#1c7a3c]">
+              <span className="ml-1.5 text-[#538f3d]">
                 {((r.share_of_total ?? 0) * 100).toFixed(1)}%
               </span>
             </span>
@@ -384,7 +384,7 @@ export default function TermShapSection({
       <Panel>
         {/* Which model, and which observed row to explain. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
             model
           </span>
           <ChipButton on={model === "flood"} onClick={() => setModel("flood")}>
@@ -394,7 +394,7 @@ export default function TermShapSection({
             landslide_xgboost
           </ChipButton>
 
-          <span className="ml-4 text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+          <span className="ml-4 text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
             explain
           </span>
           <ChipButton on={mode === "current"} onClick={() => setMode("current")}>
@@ -404,7 +404,7 @@ export default function TermShapSection({
             --peak-risk-day
           </ChipButton>
 
-          <span className="ml-auto text-[10px] text-[#3d6b47]">
+          <span className="ml-auto text-[10px] text-[#6a8958]">
             {mode === "peak"
               ? "the location's highest-probability day in the test period"
               : date
@@ -416,7 +416,7 @@ export default function TermShapSection({
         <div className="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-2">
           {/* Per-prediction explanation */}
           <div>
-            <p className="mb-2 text-[12px] font-semibold text-[#39ff7a] crt-glow-soft">
+            <p className="mb-2 text-[12px] font-semibold text-[#8ef075] crt-glow-soft">
               why this prediction?
             </p>
             {!locationId ? (
@@ -442,10 +442,10 @@ export default function TermShapSection({
 
           {/* Global importance */}
           <div>
-            <p className="mb-2 text-[12px] font-semibold text-[#39ff7a] crt-glow-soft">
+            <p className="mb-2 text-[12px] font-semibold text-[#8ef075] crt-glow-soft">
               global shap importance
             </p>
-            <p className="mb-3 text-[11px] leading-relaxed text-[#5f8d68]">
+            <p className="mb-3 text-[11px] leading-relaxed text-[#8ea97e]">
               Mean |SHAP value| per feature across the evaluation set — how much each
               feature moves this model&apos;s output on average. Amber marks
               categorical features.

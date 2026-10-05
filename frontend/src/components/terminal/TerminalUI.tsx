@@ -6,8 +6,8 @@
  * the terminal-themed pages (landing + early-warning dashboard) are built
  * from. The rest of the app keeps its original light theme.
  *
- * Palette: phosphor #39ff7a, dim #2bbf5c, faint #1c7a3c, sage body #5f8d68,
- * ink #eafff1, single amber #ffd24a for live status. Red #ff5f56 appears only
+ * Palette: phosphor #8ef075, dim #76cc5c, faint #538f3d, sage body #8ea97e,
+ * ink #f5fbe9, single amber #ffd24a for live status. Red #ff5f56 appears only
  * where severity genuinely demands it (a coupled/critical warning).
  */
 
@@ -56,16 +56,16 @@ export function TerminalWindow({
           </div>
 
           <p className="text-[13px]">
-            <span className="text-[#eafff1]">ews</span>
-            <span className="text-[#5f8d68]">@kerala: </span>
-            <span className="text-[#eafff1]">{path}</span>
+            <span className="text-[#f5fbe9]">ews</span>
+            <span className="text-[#8ea97e]">@kerala: </span>
+            <span className="text-[#f5fbe9]">{path}</span>
           </p>
 
           <div className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2">
             <nav className="hidden items-center gap-5 md:flex">
               <Link
                 to="/"
-                className="text-[13px] text-[#5f8d68] transition-colors hover:text-[#39ff7a]"
+                className="text-[13px] text-[#8ea97e] transition-colors hover:text-[#8ef075]"
               >
                 ~/home
               </Link>
@@ -77,8 +77,8 @@ export function TerminalWindow({
                     to={link.to}
                     className={`text-[13px] transition-colors ${
                       on
-                        ? "text-[#39ff7a] crt-glow-soft"
-                        : "text-[#5f8d68] hover:text-[#39ff7a]"
+                        ? "text-[#8ef075] crt-glow-soft"
+                        : "text-[#8ea97e] hover:text-[#8ef075]"
                     }`}
                   >
                     {link.label}
@@ -109,10 +109,10 @@ export function Prompt({
   return (
     <p className="text-[13px]">
       <span className="text-[#5cf6ff]">ews</span>
-      <span className="text-[#5f8d68]">{cwd}</span>{" "}
-      <span className="text-[#39ff7a] crt-glow-soft">$</span>{" "}
-      <span className="text-[#eafff1]">{command}</span>
-      {comment && <span className="text-[#1c7a3c]">{`  # ${comment}`}</span>}
+      <span className="text-[#8ea97e]">{cwd}</span>{" "}
+      <span className="text-[#8ef075] crt-glow-soft">$</span>{" "}
+      <span className="text-[#f5fbe9]">{command}</span>
+      {comment && <span className="text-[#538f3d]">{`  # ${comment}`}</span>}
     </p>
   );
 }
@@ -132,14 +132,14 @@ export function SectionHead({
   return (
     <div className="mb-4 mt-4 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="text-[11px] uppercase tracking-[0.22em] text-[#2bbf5c]">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-[#76cc5c]">
           &gt; {label}
         </p>
-        <h2 className="mt-1 text-[17px] font-semibold text-[#eafff1] sm:text-[19px]">
+        <h2 className="mt-1 text-[17px] font-semibold text-[#f5fbe9] sm:text-[19px]">
           {title}
         </h2>
         {desc && (
-          <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68]">
+          <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[#8ea97e]">
             {desc}
           </p>
         )}
@@ -166,15 +166,15 @@ export function Panel({
   return (
     <div className={`crt-panel crt-panel-hover ${className}`}>
       {(title || right) && (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#0f2a12] px-4 py-3">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1e2e14] px-4 py-3">
           <div>
             {title && (
-              <p className="text-[13px] font-semibold text-[#39ff7a] crt-glow-soft">
+              <p className="text-[13px] font-semibold text-[#8ef075] crt-glow-soft">
                 {title}
               </p>
             )}
             {desc && (
-              <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#5f8d68]">
+              <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-[#8ea97e]">
                 {desc}
               </p>
             )}
@@ -246,7 +246,7 @@ export function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
         {label}
       </span>
       {children}
@@ -285,13 +285,13 @@ export function TermLoading({
 }) {
   return (
     <div
-      className="crt-inset flex items-center justify-center px-4 text-[12px] text-[#2bbf5c]"
+      className="crt-inset flex items-center justify-center px-4 text-[12px] text-[#76cc5c]"
       style={{ minHeight: height }}
       role="status"
       aria-live="polite"
     >
       <span>
-        <span className="text-[#39ff7a] crt-glow-soft">$</span> {label}{" "}
+        <span className="text-[#8ef075] crt-glow-soft">$</span> {label}{" "}
         <span className="crt-caret align-middle" />
       </span>
     </div>
@@ -335,7 +335,7 @@ export function TermEmpty({
 }) {
   return (
     <div
-      className="crt-inset flex items-center justify-center px-4 text-center text-[12px] text-[#3d6b47]"
+      className="crt-inset flex items-center justify-center px-4 text-center text-[12px] text-[#6a8958]"
       style={{ minHeight: height }}
     >
       {message}

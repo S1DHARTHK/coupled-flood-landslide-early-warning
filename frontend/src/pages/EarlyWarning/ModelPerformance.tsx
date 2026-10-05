@@ -87,8 +87,8 @@ export default function ModelPerformancePage() {
       <TerminalWindow
         path="~/model-performance"
         status={
-          <span className="flex items-center gap-2 text-[13px] text-[#5f8d68]">
-            <span className="text-[#39ff7a]">2</span> models loaded
+          <span className="flex items-center gap-2 text-[13px] text-[#8ea97e]">
+            <span className="text-[#8ef075]">2</span> models loaded
           </span>
         }
       >
@@ -98,10 +98,10 @@ export default function ModelPerformancePage() {
             comment="stored training results"
             cwd="~/model-performance"
           />
-          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#eafff1] sm:text-[30px] [text-shadow:0_0_14px_rgba(57,255,122,0.35)]">
+          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#f5fbe9] sm:text-[30px] [text-shadow:0_0_14px_rgba(142, 240, 117,0.35)]">
             Model Performance
           </h1>
-          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
+          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#8ea97e] sm:text-[13px]">
             Metrics are read from the backend&apos;s stored training results. Nothing
             is recomputed and no model is trained here.
           </p>
@@ -119,14 +119,14 @@ export default function ModelPerformancePage() {
             <Panel title="pipeline architecture">
               <div className="flex flex-wrap items-center gap-2">
                 <Stage label="Flood XGBoost" color={TERM.dim} />
-                <span className="text-[#1c7a3c]">+</span>
+                <span className="text-[#538f3d]">+</span>
                 <Stage label="Landslide XGBoost" color={TERM.amber} />
-                <span className="text-[#1c7a3c]">-&gt;</span>
+                <span className="text-[#538f3d]">-&gt;</span>
                 <Stage label="TCDL (rule-based, not a model)" color={TERM.phosphor} />
-                <span className="text-[#1c7a3c]">-&gt;</span>
+                <span className="text-[#538f3d]">-&gt;</span>
                 <Stage label="Warning decision" color={TERM.sage} />
               </div>
-              <p className="mt-3 text-[11px] leading-relaxed text-[#5f8d68]">
+              <p className="mt-3 text-[11px] leading-relaxed text-[#8ea97e]">
                 The two classifiers are trained independently — neither sees the
                 other&apos;s target or output. Coupling happens only afterwards, inside
                 TCDL, which is why TCDL has no accuracy or ROC-AUC of its own.
@@ -148,7 +148,7 @@ export default function ModelPerformancePage() {
 
           {/* --------------------------------------------- model tabs */}
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
               model
             </span>
             {(Object.keys(MODEL_META) as ModelKey[]).map((k) => (
@@ -186,7 +186,7 @@ export default function ModelPerformancePage() {
 
                   <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
                     <div>
-                      <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+                      <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
                         confusion matrix (test set, threshold{" "}
                         {model.decision_threshold})
                       </p>
@@ -196,7 +196,7 @@ export default function ModelPerformancePage() {
                     <div className="space-y-3">
                       <TermCalibrationNote model={model} />
                       <div className="crt-inset p-3">
-                        <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
                           training configuration
                         </p>
                         <dl className="mt-2 space-y-1 text-[11px]">
@@ -227,8 +227,8 @@ export default function ModelPerformancePage() {
                             ["n_features", contract?.n_features ?? "—"],
                           ].map(([k, v]) => (
                             <div key={String(k)} className="flex justify-between">
-                              <dt className="text-[#5f8d68]">{k}</dt>
-                              <dd className="text-[#cfe9d5]">{String(v)}</dd>
+                              <dt className="text-[#8ea97e]">{k}</dt>
+                              <dd className="text-[#dbe9ce]">{String(v)}</dd>
                             </div>
                           ))}
                         </dl>
@@ -289,7 +289,7 @@ export default function ModelPerformancePage() {
                         categoricalFeatures={importance.categorical_features ?? []}
                       />
                       {(importance.categorical_features?.length ?? 0) > 0 && (
-                        <p className="mt-4 text-[10px] text-[#3d6b47]">
+                        <p className="mt-4 text-[10px] text-[#6a8958]">
                           <span
                             className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle"
                             style={{
@@ -302,7 +302,7 @@ export default function ModelPerformancePage() {
                           natively by XGBoost, not one-hot encoded.
                         </p>
                       )}
-                      <p className="mt-2 text-[10px] leading-relaxed text-[#3d6b47]">
+                      <p className="mt-2 text-[10px] leading-relaxed text-[#6a8958]">
                         {isReal
                           ? "Static terrain features take one value per district (14 values), so their importance partly reflects district identity rather than physical process."
                           : "On synthetic data these rankings describe the data generator, not real flood or landslide physics."}
@@ -317,8 +317,8 @@ export default function ModelPerformancePage() {
           {/* ------------------------------------------------ footer */}
           <div className="crt-rule mt-10" />
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
-            <p className="text-[#5f8d68]">
-              <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
+            <p className="text-[#8ea97e]">
+              <span className="text-[#8ef075] crt-glow-soft">$</span> echo
               &quot;
               {isReal
                 ? "real district-day data · research metrics, not operational skill"
@@ -326,7 +326,7 @@ export default function ModelPerformancePage() {
               &quot;{" "}
               <span className="crt-caret align-middle" />
             </p>
-            <p className="text-[#1c7a3c]">
+            <p className="text-[#538f3d]">
               active: {MODEL_META[active].command} · threshold{" "}
               {model?.decision_threshold ?? "—"}
             </p>

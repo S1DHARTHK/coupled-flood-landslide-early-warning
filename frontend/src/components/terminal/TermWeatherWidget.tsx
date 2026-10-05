@@ -115,25 +115,25 @@ export default function TermWeatherWidget({
     <div className="crt-panel w-full shrink-0 p-3 sm:w-[272px]">
       {/* Header: location + the historical date shown */}
       <div className="flex items-baseline justify-between gap-2">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
           {SITE.label}
         </p>
-        <span className="text-[9px] uppercase tracking-wide text-[#1c7a3c]">
+        <span className="text-[9px] uppercase tracking-wide text-[#538f3d]">
           {date ? displayDate(date) : "—"}
         </span>
       </div>
 
       {!date ? (
-        <p className="mt-3 text-[11px] text-[#2bbf5c]">
+        <p className="mt-3 text-[11px] text-[#76cc5c]">
           waiting for date… <span className="crt-caret align-middle" />
         </p>
       ) : error ? (
-        <p className="mt-3 text-[11px] text-[#5f8d68]">
+        <p className="mt-3 text-[11px] text-[#8ea97e]">
           <span style={{ color: TERM.amber }}>[!]</span> weather unavailable (
           {error})
         </p>
       ) : !data || !c ? (
-        <p className="mt-3 text-[11px] text-[#2bbf5c]">
+        <p className="mt-3 text-[11px] text-[#76cc5c]">
           fetching weather… <span className="crt-caret align-middle" />
         </p>
       ) : (
@@ -143,16 +143,16 @@ export default function TermWeatherWidget({
               {c.icon}
             </span>
             <p
-              className="text-[28px] font-bold leading-none text-[#eafff1]"
-              style={{ textShadow: "0 0 12px rgba(57,255,122,0.35)" }}
+              className="text-[28px] font-bold leading-none text-[#f5fbe9]"
+              style={{ textShadow: "0 0 12px rgba(142, 240, 117,0.35)" }}
             >
               {data.temp.toFixed(1)}
-              <span className="text-[15px] text-[#5f8d68]">°C</span>
+              <span className="text-[15px] text-[#8ea97e]">°C</span>
             </p>
           </div>
           <div className="pb-1 text-right text-[11px]">
-            <p className="text-[#39ff7a] crt-glow-soft">{c.label}</p>
-            <p className="text-[#5f8d68]">
+            <p className="text-[#8ef075] crt-glow-soft">{c.label}</p>
+            <p className="text-[#8ea97e]">
               feels like{" "}
               <span style={{ color: TERM.ink }}>{data.feelsLike.toFixed(1)}°C</span>
             </p>

@@ -8,11 +8,11 @@
  */
 
 export const TERM = {
-  phosphor: "#39ff7a",
-  dim: "#2bbf5c",
-  faint: "#1c7a3c",
-  sage: "#5f8d68",
-  ink: "#eafff1",
+  phosphor: "#8ef075",
+  dim: "#76cc5c",
+  faint: "#538f3d",
+  sage: "#8ea97e",
+  ink: "#f5fbe9",
   amber: "#ffd24a",
   red: "#ff5f56",
   cyan: "#5cf6ff",

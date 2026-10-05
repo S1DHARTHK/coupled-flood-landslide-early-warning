@@ -50,7 +50,7 @@ function Card({
   const t = rate !== undefined ? trend(rate) : null;
   return (
     <div className="crt-panel crt-panel-hover p-4">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
         {label}
       </p>
       <div className="mt-2 flex items-end gap-2">
@@ -75,7 +75,7 @@ function Card({
           <Meter value={meter} color={color} />
         </div>
       )}
-      <p className="mt-2 text-[11px] leading-relaxed text-[#5f8d68]">{sub}</p>
+      <p className="mt-2 text-[11px] leading-relaxed text-[#8ea97e]">{sub}</p>
     </div>
   );
 }
@@ -152,10 +152,10 @@ function SignalRow({
 }) {
   const t = trend(rate);
   return (
-    <div className="flex items-center justify-between border-b border-[#0f2a12] py-2 last:border-0">
-      <span className="text-[11px] text-[#5f8d68]">{label}</span>
+    <div className="flex items-center justify-between border-b border-[#1e2e14] py-2 last:border-0">
+      <span className="text-[11px] text-[#8ea97e]">{label}</span>
       <span className="flex items-center gap-2">
-        <span className="text-[11px] text-[#cfe9d5]">
+        <span className="text-[11px] text-[#dbe9ce]">
           {value}
           {unit}
         </span>
@@ -201,7 +201,7 @@ export function TermWarningPanel({
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[#2bbf5c]">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#76cc5c]">
               current tcdl decision
             </p>
             <p
@@ -210,9 +210,9 @@ export function TermWarningPanel({
             >
               {tcdl.warning_type.toUpperCase()}
             </p>
-            <p className="mt-1 text-[11px] text-[#5f8d68]">
+            <p className="mt-1 text-[11px] text-[#8ea97e]">
               {location.district ? (
-                <span className="text-[#cfe9d5]">{location.district} · </span>
+                <span className="text-[#dbe9ce]">{location.district} · </span>
               ) : null}
               {formatCoord(environment.latitude, environment.longitude)}
             </p>
@@ -224,7 +224,7 @@ export function TermWarningPanel({
             {LEVEL_META[level as HazardLevel].label}
           </span>
         </div>
-        <p className="mt-2 text-[11px] text-[#3d6b47]">
+        <p className="mt-2 text-[11px] text-[#6a8958]">
           {tcdl.warning_timestamp
             ? `warning timestamp: ${tcdl.warning_timestamp} (daily resolution)`
             : `no active warning · as of ${environment.date}`}
@@ -246,7 +246,7 @@ export function TermWarningPanel({
             { k: "coupled", v: trends.coupled_probability, c: TERM.phosphor },
           ].map((x) => (
             <div key={x.k} className="crt-inset px-2 py-2 text-center">
-              <p className="text-[10px] uppercase tracking-wide text-[#3d6b47]">
+              <p className="text-[10px] uppercase tracking-wide text-[#6a8958]">
                 {x.k}
               </p>
               <p
@@ -261,7 +261,7 @@ export function TermWarningPanel({
 
         {/* Temporal signals consumed by TCDL */}
         <div>
-          <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+          <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
             temporal signals
           </p>
           <SignalRow
@@ -289,7 +289,7 @@ export function TermWarningPanel({
 
         {/* TCDL rules */}
         <div>
-          <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+          <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
             tcdl rules ({fired.size} of {TCDL_RULES.length} triggered)
           </p>
           <ul className="space-y-1">
@@ -304,18 +304,18 @@ export function TermWarningPanel({
                 >
                   <span
                     className="text-[11px] font-bold"
-                    style={{ color: on ? TERM.amber : "#1c3a22" }}
+                    style={{ color: on ? TERM.amber : "#304625" }}
                   >
                     [{on ? "x" : " "}]
                   </span>
                   <span className="min-w-0 flex-1">
                     <span
                       className="text-[11px]"
-                      style={{ color: on ? TERM.amber : "#3d6b47" }}
+                      style={{ color: on ? TERM.amber : "#6a8958" }}
                     >
                       {rule}
                     </span>
-                    <span className="ml-1.5 text-[10px] text-[#1c7a3c]">
+                    <span className="ml-1.5 text-[10px] text-[#538f3d]">
                       {ruleIsBaseline(rule) ? "baseline" : "coupling"}
                     </span>
                   </span>
@@ -323,7 +323,7 @@ export function TermWarningPanel({
               );
             })}
           </ul>
-          <p className="mt-2 text-[10px] leading-relaxed text-[#3d6b47]">
+          <p className="mt-2 text-[10px] leading-relaxed text-[#6a8958]">
             Rules R1/R2 replicate the single-model baselines; R3–R7 are the coupling
             rules. Rule conditions and thresholds are defined by TCDL V1.0 in the ML
             layer and are not evaluated in this interface.
@@ -385,7 +385,7 @@ function RecordedEvents({
 }) {
   const hits = (["flood", "landslide"] as const).filter((h) => labels[h] === 1);
   return (
-    <p className="mt-1 text-[11px] text-[#3d6b47]">
+    <p className="mt-1 text-[11px] text-[#6a8958]">
       recorded event:{" "}
       <span style={{ color: hits.length ? TERM.red : TERM.faint }}>
         {hits.length ? hits.join(" + ") : "none reported"}
@@ -459,11 +459,11 @@ export function TermMapLegend() {
   const levels: HazardLevel[] = ["normal", "watch", "warning", "critical"];
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
         hazard level
       </span>
       {levels.map((lvl) => (
-        <span key={lvl} className="flex items-center gap-1.5 text-[11px] text-[#5f8d68]">
+        <span key={lvl} className="flex items-center gap-1.5 text-[11px] text-[#8ea97e]">
           <span
             className="inline-block h-2 w-2 rounded-full"
             style={{

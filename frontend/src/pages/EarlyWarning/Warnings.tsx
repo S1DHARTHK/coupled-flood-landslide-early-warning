@@ -100,8 +100,8 @@ export default function WarningsPage() {
       <TerminalWindow
         path="~/warnings"
         status={
-          <span className="flex items-center gap-2 text-[13px] text-[#5f8d68]">
-            <span className="text-[#39ff7a]">{nMatching}</span> matching ·{" "}
+          <span className="flex items-center gap-2 text-[13px] text-[#8ea97e]">
+            <span className="text-[#8ef075]">{nMatching}</span> matching ·{" "}
             {records.length} loaded
           </span>
         }
@@ -112,10 +112,10 @@ export default function WarningsPage() {
             comment="TCDL decision log"
             cwd="~/warnings"
           />
-          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#eafff1] sm:text-[30px] [text-shadow:0_0_14px_rgba(57,255,122,0.35)]">
+          <h1 className="mt-4 text-[26px] font-bold leading-tight tracking-tight text-[#f5fbe9] sm:text-[30px] [text-shadow:0_0_14px_rgba(142, 240, 117,0.35)]">
             Warning History
           </h1>
-          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#5f8d68] sm:text-[13px]">
+          <p className="mt-2 max-w-3xl text-[12px] leading-relaxed text-[#8ea97e] sm:text-[13px]">
             Every row is a TCDL decision produced by the ML pipeline
             {isReal ? " on the real Kerala district-day data (2012–2024)" : ""}. Timestamps
             are daily — the dataset carries no time of day.
@@ -133,17 +133,17 @@ export default function WarningsPage() {
           {/* ---------------------------------------- summary counts */}
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="crt-panel crt-panel-hover p-4">
-              <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
                 matching_warning_days
               </p>
               <p
-                className="mt-2 text-[26px] font-bold leading-none text-[#eafff1]"
-                style={{ textShadow: "0 0 12px rgba(57,255,122,0.35)" }}
+                className="mt-2 text-[26px] font-bold leading-none text-[#f5fbe9]"
+                style={{ textShadow: "0 0 12px rgba(142, 240, 117,0.35)" }}
               >
                 {nMatching}
               </p>
               {warnings.data?.n_location_days_in_range !== undefined && (
-                <p className="mt-2 text-[11px] text-[#5f8d68]">
+                <p className="mt-2 text-[11px] text-[#8ea97e]">
                   of {warnings.data.n_location_days_in_range}{" "}
                   {isReal ? "district" : "location"}-days in range
                 </p>
@@ -153,7 +153,7 @@ export default function WarningsPage() {
               const color = warningColor(t);
               return (
                 <div key={t} className="crt-panel crt-panel-hover p-4">
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
                     {t.toLowerCase().replace(/ /g, "_")}
                     {truncated ? " (loaded)" : ""}
                   </p>
@@ -259,9 +259,9 @@ export default function WarningsPage() {
                   --reset
                 </button>
 
-                <span className="ml-auto text-[11px] text-[#3d6b47]">
+                <span className="ml-auto text-[11px] text-[#6a8958]">
                   showing{" "}
-                  <span className="text-[#39ff7a]">{filtered.length}</span> of{" "}
+                  <span className="text-[#8ef075]">{filtered.length}</span> of{" "}
                   {records.length} loaded
                 </span>
               </div>
@@ -343,7 +343,7 @@ export default function WarningsPage() {
                                   {r.triggered_rules.map((rule) => (
                                     <span
                                       key={rule}
-                                      className="rounded-[2px] border border-[#1f4d1f] px-1.5 py-0.5 text-[10px] text-[#2bbf5c]"
+                                      className="rounded-[2px] border border-[#3d5d2d] px-1.5 py-0.5 text-[10px] text-[#76cc5c]"
                                     >
                                       {rule}
                                     </span>
@@ -357,7 +357,7 @@ export default function WarningsPage() {
                                     {r.actual.landslide ? "landslide" : ""}
                                   </span>
                                 ) : (
-                                  <span className="text-[#1c3a22]">—</span>
+                                  <span className="text-[#304625]">—</span>
                                 )}
                               </td>
                             </tr>
@@ -369,7 +369,7 @@ export default function WarningsPage() {
                 )}
               </div>
 
-              <p className="mt-3 text-[10px] leading-relaxed text-[#3d6b47]">
+              <p className="mt-3 text-[10px] leading-relaxed text-[#6a8958]">
                 “actual” shows whether a hazard was recorded on that day
                 {isReal ? " in that district (0 = not reported, not proven absence)" : " at that point"},
                 for reference against the warning. Warning timestamps have daily
@@ -381,15 +381,15 @@ export default function WarningsPage() {
           {/* ---------------------------------------------- footer */}
           <div className="crt-rule mt-10" />
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
-            <p className="text-[#5f8d68]">
-              <span className="text-[#39ff7a] crt-glow-soft">$</span> echo
+            <p className="text-[#8ea97e]">
+              <span className="text-[#8ef075] crt-glow-soft">$</span> echo
               &quot;
               {isReal
                 ? "real historical data · research output, not an operational warning"
                 : "synthetic development data · not a real-world Kerala warning"}
               &quot; <span className="crt-caret align-middle" />
             </p>
-            <p className="text-[#1c7a3c]">
+            <p className="text-[#538f3d]">
               tcdl@v1.0 · matching: {nMatching} · loaded: {records.length} · shown:{" "}
               {filtered.length}
             </p>

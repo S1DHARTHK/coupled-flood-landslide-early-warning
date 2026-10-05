@@ -90,7 +90,7 @@ function HazardCard({
   const color = warn ? TERM.amber : TERM.phosphor;
   return (
     <div className="crt-inset p-4">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">{title}</p>
+      <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">{title}</p>
       <p
         className="mt-2 text-[28px] font-bold leading-none"
         style={{ color, textShadow: `0 0 12px ${color}66` }}
@@ -102,7 +102,7 @@ function HazardCard({
       </div>
       <p className="mt-3 text-[12px]" style={{ color }}>
         {p.warning_status}
-        <span className="text-[#5f8d68]">
+        <span className="text-[#8ea97e]">
           {" "}
           · threshold {res.decision_threshold.toFixed(2)} · model_set {res.model_set ?? "—"}
         </span>
@@ -113,7 +113,7 @@ function HazardCard({
           missing-value branch (not imputed)
         </p>
       )}
-      <p className="mt-1.5 break-all text-[10px] text-[#3d6b47]">{res.model_artifact}</p>
+      <p className="mt-1.5 break-all text-[10px] text-[#6a8958]">{res.model_artifact}</p>
     </div>
   );
 }
@@ -223,7 +223,7 @@ export default function TermRealPrediction() {
               {running ? "./predict …" : "./predict"}
             </button>
             {info && (
-              <span className="text-[11px] text-[#3d6b47]">
+              <span className="text-[11px] text-[#6a8958]">
                 data {info.first_date} → {info.last_date} · river level on{" "}
                 {info.river_level_days.toLocaleString()} of {info.n_days.toLocaleString()} days
               </span>
@@ -239,9 +239,9 @@ export default function TermRealPrediction() {
               <TermEmpty message="choose a district and a day, then ./predict" height={160} />
             ) : (
               <div className={running ? "opacity-60" : ""}>
-                <p className="text-[12px] text-[#cfe9d5]">
+                <p className="text-[12px] text-[#dbe9ce]">
                   {obs.district} · {obs.date}
-                  <span className="text-[#5f8d68]">
+                  <span className="text-[#8ea97e]">
                     {" "}
                     · split {obs.split ? SPLIT_LABEL[obs.split] ?? obs.split : "—"} · recorded
                     event: flood {obs.recorded_labels.flood ?? "—"}, landslide{" "}
@@ -257,7 +257,7 @@ export default function TermRealPrediction() {
                 <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
                   {INPUT_GROUPS.map((g) => (
                     <div key={g.label} className="crt-inset p-3">
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-[#2bbf5c]">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-[#76cc5c]">
                         {g.label} inputs
                       </p>
                       <dl className="mt-2 space-y-1 text-[11px]">
@@ -266,8 +266,8 @@ export default function TermRealPrediction() {
                           const missing = v === null || v === undefined;
                           return (
                             <div key={f} className="flex justify-between gap-3">
-                              <dt className="text-[#5f8d68]">{f}</dt>
-                              <dd style={{ color: missing ? TERM.amber : "#cfe9d5" }}>
+                              <dt className="text-[#8ea97e]">{f}</dt>
+                              <dd style={{ color: missing ? TERM.amber : "#dbe9ce" }}>
                                 {missing ? "null (missing)" : formatValue(v)}
                               </dd>
                             </div>
@@ -278,7 +278,7 @@ export default function TermRealPrediction() {
                   ))}
                 </div>
 
-                <p className="mt-3 text-[10px] leading-relaxed text-[#3d6b47]">
+                <p className="mt-3 text-[10px] leading-relaxed text-[#6a8958]">
                   {result.flood.model_note} Probabilities are not calibrated (training used
                   scale_pos_weight); compare them, do not read them as literal likelihoods.
                   Recorded event 0 means no event was reported, not that none occurred.

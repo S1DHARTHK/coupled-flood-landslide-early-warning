@@ -30,10 +30,10 @@ export function TermMetricTiles({ metrics }: { metrics: SplitMetrics }) {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {tiles.map((t) => (
         <div key={t.label} className="crt-inset px-3 py-2.5">
-          <p className="text-[10px] uppercase tracking-[0.16em] text-[#2bbf5c]">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-[#76cc5c]">
             {t.label}
           </p>
-          <p className="mt-1 text-[17px] font-bold text-[#eafff1]">{t.value}</p>
+          <p className="mt-1 text-[17px] font-bold text-[#f5fbe9]">{t.value}</p>
         </div>
       ))}
     </div>
@@ -54,7 +54,7 @@ export function TermConfusionMatrix({ metrics }: { metrics: SplitMetrics }) {
           background: `${color}0d`,
         }}
       >
-        <p className="text-[10px] uppercase tracking-wide text-[#3d6b47]">{label}</p>
+        <p className="text-[10px] uppercase tracking-wide text-[#6a8958]">{label}</p>
         <p className="mt-0.5 text-[20px] font-bold" style={{ color }}>
           {value}
         </p>
@@ -70,7 +70,7 @@ export function TermConfusionMatrix({ metrics }: { metrics: SplitMetrics }) {
         {cell("false negatives", cm.false_negatives, "bad")}
         {cell("true positives", cm.true_positives, "good")}
       </div>
-      <p className="mt-2.5 text-[11px] leading-relaxed text-[#5f8d68]">
+      <p className="mt-2.5 text-[11px] leading-relaxed text-[#8ea97e]">
         In an early-warning context the{" "}
         <span style={{ color: TERM.red }}>
           {cm.false_negatives} false negatives
@@ -104,7 +104,7 @@ export function TermCalibrationNote({ model }: { model: ModelPerformance }) {
         Mean predicted probability {pct(test.mean_predicted_probability, 1)} against an
         observed event rate of {pct(test.observed_positive_rate, 1)} (Brier{" "}
         {num(test.brier_score, 4)}). The model was trained with{" "}
-        <span className="text-[#cfe9d5]">scale_pos_weight</span> to favour recall,
+        <span className="text-[#dbe9ce]">scale_pos_weight</span> to favour recall,
         which inflates probabilities. They rank correctly but are not literal
         likelihoods. Calibration is a known open item, deliberately out of scope for
         V1.0.
@@ -134,9 +134,9 @@ export function TermFeatureImportance({
         const color = cat ? TERM.amber : TERM.phosphor;
         return (
           <div key={r.feature} className="flex items-center gap-3">
-            <span className="w-[140px] shrink-0 truncate text-[11px] text-[#5f8d68]">
+            <span className="w-[140px] shrink-0 truncate text-[11px] text-[#8ea97e]">
               {r.feature}
-              {cat && <span className="ml-1 text-[9px] text-[#1c7a3c]">cat</span>}
+              {cat && <span className="ml-1 text-[9px] text-[#538f3d]">cat</span>}
             </span>
             <div className="crt-meter flex-1">
               <div
@@ -148,9 +148,9 @@ export function TermFeatureImportance({
                 }}
               />
             </div>
-            <span className="w-[150px] shrink-0 text-right text-[10px] tabular-nums text-[#3d6b47]">
+            <span className="w-[150px] shrink-0 text-right text-[10px] tabular-nums text-[#6a8958]">
               gain {r.importance_gain.toFixed(1)}
-              <span className="ml-1.5 text-[#1c7a3c]">
+              <span className="ml-1.5 text-[#538f3d]">
                 {pct(r.importance_normalised, 1)} · {r.split_count ?? 0} splits
               </span>
             </span>
@@ -213,7 +213,7 @@ export function TermSplitPeriodTable({ model }: { model: ModelPerformance }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-[10px] text-[#3d6b47]">
+      <p className="mt-2 text-[10px] text-[#6a8958]">
         Chronological split — training always precedes validation, which precedes the
         unseen test period. No random shuffling.
       </p>

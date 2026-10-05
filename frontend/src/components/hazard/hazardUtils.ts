@@ -35,7 +35,7 @@ export const LEVEL_META: Record<
 > = {
   normal: {
     label: "Normal",
-    hex: "#12b76a",
+    hex: "#64c247",
     badge: "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400",
     ring: "ring-success-500/30",
   },
@@ -64,7 +64,7 @@ export const WARNING_TYPE_META: Record<
   { color: string; badge: string; dot: string }
 > = {
   "No Warning": {
-    color: "#12b76a",
+    color: "#64c247",
     badge: "bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400",
     dot: "bg-success-500",
   },
@@ -178,7 +178,7 @@ export const SYSTEM_LABELS: Record<string, string> = {
 export const SYSTEM_COLORS: Record<string, string> = {
   flood_only: "#2e90fa",
   landslide_only: "#f79009",
-  tcdl_coupled: "#12b76a",
+  tcdl_coupled: "#64c247",
   tcdl_coupling_rules_only: "#7a5af8",
   always_warn_control: "#98a2b3",
 };
