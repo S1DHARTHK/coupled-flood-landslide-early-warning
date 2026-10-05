@@ -63,12 +63,6 @@ export function TerminalWindow({
 
           <div className="ml-auto flex flex-wrap items-center gap-x-5 gap-y-2">
             <nav className="hidden items-center gap-5 md:flex">
-              <Link
-                to="/"
-                className="text-[13px] text-[#8ea97e] transition-colors hover:text-[#8ef075]"
-              >
-                ~/home
-              </Link>
               {NAV_LINKS.map((link) => {
                 const on = pathname === link.to;
                 return (

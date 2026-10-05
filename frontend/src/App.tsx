@@ -1,10 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import NotFound from "./pages/OtherPage/NotFound";
 
 // Kerala Flood–Landslide Early Warning System
-import Landing from "./pages/Landing/Landing";
 import EarlyWarningDashboard from "./pages/EarlyWarning/Dashboard";
 import WarningsPage from "./pages/EarlyWarning/Warnings";
 import AnalysisPage from "./pages/EarlyWarning/Analysis";
@@ -24,7 +23,8 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         {/* Every route below is a self-contained terminal window. */}
-        <Route index path="/" element={<Landing />} />
+        {/* The app opens directly on the dashboard. */}
+        <Route index path="/" element={<Navigate to="/early-warning" replace />} />
 
         <Route path="/early-warning" element={<EarlyWarningDashboard />} />
         <Route path="/warnings" element={<WarningsPage />} />
